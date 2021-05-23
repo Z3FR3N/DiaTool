@@ -4,17 +4,20 @@ import subprocess
 import socket
  
 #user name
+print("user:")
 user_name = subprocess.run('whoami', capture_output=True).stdout.decode() #recover & convert string
 user_name = user_name[0:-1] #string cleaning, more readable
 
-print(user_name)
+print(user_name + "\n")
 
 #hostname
+print("hostname:")
 hostname  = socket.gethostname() #method from socket
 
-print(hostname)
+print(hostname + "\n")
 
-#CPU details
+#CPU info
+print("CPU info:")
 lscpu = subprocess.run('lscpu', capture_output=True) #lscpu command
 cpu_model = subprocess.run(['grep', 'Model name:*'], input=lscpu.stdout, capture_output=True).stdout.decode().split() #grep command for model name & convert to list
 del cpu_model[0:2] #cleaning 1
@@ -35,39 +38,57 @@ print(freq_max)
 print(arch)
 print(cpus)
 print(threads)
-print(cpu_name)
+print(cpu_name + "\n")
 
-#RAM details
-
+#RAM info
+print("RAM info")
 free = subprocess.run(['free', '-m'], capture_output=True) #free command, RAM in MB
-ram_details = subprocess.run(['grep', 'Mem:*'], input=free.stdout, capture_output=True).stdout.decode().split() #grep command to list [RAM DET]
-total_ram = ram_details[1]
-used_ram = ram_details[2]
-free_ram = ram_details[3]
-available_ram = ram_details[6]
+ram_info = subprocess.run(['grep', 'Mem:*'], input=free.stdout, capture_output=True).stdout.decode().split() #grep command to list [RAM info]
+total_ram = ram_info[1]
+used_ram = ram_info[2]
+free_ram = ram_info[3]
+available_ram = ram_info[6]
 
 print(total_ram)
 print(used_ram)
 print(free_ram)
-print(available_ram)
+print(available_ram + "\n")
 
-#Swap details
-
-swap_details = subprocess.run(['grep', 'Swap:*'], input=free.stdout, capture_output=True).stdout.decode().split() #grep command to list [SWAP DET]
+#Swap info
+print("swap info")
+swap_details = subprocess.run(['grep', 'Swap:*'], input=free.stdout, capture_output=True).stdout.decode().split() #grep command to list [swap info]
 total_swap = swap_details[1]
 used_swap = swap_details[2]
 free_swap = swap_details[3]
 
 print(total_swap)
 print(used_swap)
-print(free_swap)
+print(free_swap + "\n")
 
 #On linux we can check the value of swappiness
-
+print("swappiness:")
 swappiness = subprocess.run(['cat', '/proc/sys/vm/swappiness'], capture_output=True).stdout.decode()
 swappiness = swappiness[0:-1] #string cleaning
-print(swappiness)
+print(swappiness + "\n")
 
-#Network informations
+#Disk info
+print("Disks tree:")
+lsblk = subprocess.run('lsblk', capture_output=True) #lsblk command
+disk_nvme = subprocess.run(['grep', 'nvme'], input=lsblk.stdout, capture_output=True).stdout.decode()
+disk_sd = subprocess.run(['grep', 'sd'], input=lsblk.stdout, capture_output=True).stdout.decode()
 
+print(disk_nvme)
+print(disk_sd)
+
+#Todo
+
+#GPU info
+
+#Todo
+
+#Uptime
+
+#OS info
+
+#Network info
 
