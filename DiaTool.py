@@ -77,18 +77,34 @@ lsblk = subprocess.run('lsblk', capture_output=True) #lsblk command
 disk_nvme = subprocess.run(['grep', 'nvme'], input=lsblk.stdout, capture_output=True).stdout.decode()
 disk_sd = subprocess.run(['grep', 'sd'], input=lsblk.stdout, capture_output=True).stdout.decode()
 
-print(disk_nvme)
-print(disk_sd)
-
-#Todo
+print(disk_nvme) #cleaning needed
+print(disk_sd) #cleaning needed
 
 #GPU info
+lspci = subprocess.run(['lspci'], capture_output=True)#general info for GPUs
+int_gpu = subprocess.run(['grep', '00:02'], capture_output=True, input=lspci.stdout).stdout.decode().split()
+ded_gpu = subprocess.run(['grep', '01:00'], capture_output=True, input=lspci.stdout).stdout.decode().split()
 
-#Todo
+del int_gpu[0]
+del ded_gpu[0]
+
+int_gpu_name = " ".join(int_gpu)
+ded_gpu_name = " ".join(ded_gpu)
+
+print(int_gpu_name)#cleaning needed
+print(ded_gpu_name)#cleaning needed
 
 #Uptime
+uptime = subprocess.run(['uptime', '-p'], capture_output=True).stdout.decode()
+print(uptime)
 
-#OS info
+#distro Linux info
+os_info = subprocess.run(['cat', '/etc/lsb-release'], capture_output=True)#releases info
+distro_info = subprocess.run(['grep', 'DISTRIB_DESCRIPTION'], capture_output=True, input=os_info.stdout).stdout.decode() 
+distro_ver =  subprocess.run(['grep', 'DISTRIB_RELEASE'], capture_output=True, input=os_info.stdout).stdout.decode()
+
+print(distro_info)#cleaning needed
+print(distro_ver)#cleaning needed
 
 #Network info
 
