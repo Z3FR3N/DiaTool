@@ -7,92 +7,66 @@ import socket
 print("user:")
 user_name = subprocess.run('whoami', capture_output=True).stdout.decode() #recover & convert string
 user_name = user_name[0:-1] #string cleaning, more readable
-
 print(user_name + "\n")
 
 #hostname
 print("hostname:")
 hostname  = socket.gethostname() #method from socket
-
 print(hostname + "\n")
 
 #CPU info
-print("CPU info:")
 lscpu = subprocess.run('lscpu', capture_output=True) #lscpu command
 cpu_model = subprocess.run(['grep', 'Model name:*'], input=lscpu.stdout, capture_output=True).stdout.decode().split() #grep command for model name & convert to list
+threads = subprocess.run(['grep', 'CPU(s)*'], input=lscpu.stdout, capture_output=True).stdout.decode().split()[1] #grep threads number
+cpus = subprocess.run(['grep', 'Core(s) per socket:*'], input=lscpu.stdout, capture_output=True).stdout.decode().split()[3] #grep cpus number
+arch = subprocess.run(['grep', 'Architecture:*'], input=lscpu.stdout, capture_output=True).stdout.decode().split()[1] #grep architecture
+freq_max = subprocess.run(['grep', 'CPU max MHz:*'], input=lscpu.stdout, capture_output=True).stdout.decode().split()[3] #grep max freq
+freq_min = subprocess.run(['grep', 'CPU min MHz:*'], input=lscpu.stdout, capture_output=True).stdout.decode().split()[3] #grep min freq
+
 del cpu_model[0:2] #cleaning 1
 del cpu_model[-3:-1], cpu_model[-1] #cleaning 2
 cpu_name = " ".join(cpu_model) #conversion list to string, ready to output
-threads = subprocess.run(['grep', 'CPU(s)*'], input=lscpu.stdout, capture_output=True).stdout.decode().split()[1] #grep threads number
 
-cpus = subprocess.run(['grep', 'Core(s) per socket:*'], input=lscpu.stdout, capture_output=True).stdout.decode().split()[3] #grep cpus number
-
-arch = subprocess.run(['grep', 'Architecture:*'], input=lscpu.stdout, capture_output=True).stdout.decode().split()[1] #grep architecture
-
-freq_max = subprocess.run(['grep', 'CPU max MHz:*'], input=lscpu.stdout, capture_output=True).stdout.decode().split()[3] #grep max freq
-
-freq_min = subprocess.run(['grep', 'CPU min MHz:*'], input=lscpu.stdout, capture_output=True).stdout.decode().split()[3] #grep min freq
-
-print(freq_min)
-print(freq_max)
-print(arch)
-print(cpus)
-print(threads)
-print(cpu_name + "\n")
+print("CPU info:\n" + freq_min + "\n" + freq_max + "\n" + arch + "\n" + cpus + "\n" + threads + "\n" + cpu_name + "\n")
 
 #RAM info
-print("RAM info")
 free = subprocess.run(['free', '-m'], capture_output=True) #free command, RAM in MB
 ram_info = subprocess.run(['grep', 'Mem:*'], input=free.stdout, capture_output=True).stdout.decode().split() #grep command to list [RAM info]
+
 total_ram = ram_info[1]
 used_ram = ram_info[2]
 free_ram = ram_info[3]
 available_ram = ram_info[6]
 
-print(total_ram)
-print(used_ram)
-print(free_ram)
-print(available_ram + "\n")
+print("RAM info\n" + total_ram + "\n" + used_ram + "\n" + free_ram + "\n" + available_ram + "\n")
 
 #Swap info
-print("swap info")
 swap_details = subprocess.run(['grep', 'Swap:*'], input=free.stdout, capture_output=True).stdout.decode().split() #grep command to list [swap info]
 total_swap = swap_details[1]
 used_swap = swap_details[2]
 free_swap = swap_details[3]
 
-print(total_swap)
-print(used_swap)
-print(free_swap + "\n")
+print("swap info\n" + total_swap + "\n" + used_swap + "\n" + free_swap + "\n")
 
 #On linux we can check the value of swappiness
-print("swappiness:")
 swappiness = subprocess.run(['cat', '/proc/sys/vm/swappiness'], capture_output=True).stdout.decode()
 swappiness = swappiness[0:-1] #string cleaning
-print(swappiness + "\n")
+print("swappiness:" + swappiness + "\n")
 
 #Disk info
-print("Disks tree:")
 lsblk = subprocess.run('lsblk', capture_output=True) #lsblk command
 disk_nvme = subprocess.run(['grep', 'nvme'], input=lsblk.stdout, capture_output=True).stdout.decode()
 disk_sd = subprocess.run(['grep', 'sd'], input=lsblk.stdout, capture_output=True).stdout.decode()
 
-print(disk_nvme) #cleaning needed
-print(disk_sd) #cleaning needed
+print("Disk tree:\n" + disk_nvme + "\n" + disk_sd) #cleaning needed
 
 #GPU info
 lspci = subprocess.run(['lspci'], capture_output=True)#general info for GPUs
-int_gpu = subprocess.run(['grep', '00:02'], capture_output=True, input=lspci.stdout).stdout.decode().split()
-ded_gpu = subprocess.run(['grep', '01:00'], capture_output=True, input=lspci.stdout).stdout.decode().split()
+int_gpu = subprocess.run(['grep', 'VGA compatible controller:'], capture_output=True, input=lspci.stdout).stdout.decode()
+ded_gpu_nvidia = subprocess.run(['grep', '3D controller'], capture_output=True, input=lspci.stdout).stdout.decode()
+ded_gpu_amd = subprocess.run(['grep', 'Display controller'], capture_output=True, input=lspci.stdout).stdout.decode()
 
-del int_gpu[0]
-del ded_gpu[0]
-
-int_gpu_name = " ".join(int_gpu)
-ded_gpu_name = " ".join(ded_gpu)
-
-print(int_gpu_name)#cleaning needed
-print(ded_gpu_name)#cleaning needed
+print(int_gpu + "\n" + ded_gpu_nvidia + "\n" + ded_gpu_amd) #cleaning needed
 
 #Uptime
 uptime = subprocess.run(['uptime', '-p'], capture_output=True).stdout.decode()
@@ -102,9 +76,12 @@ print(uptime)
 os_info = subprocess.run(['cat', '/etc/lsb-release'], capture_output=True)#releases info
 distro_info = subprocess.run(['grep', 'DISTRIB_DESCRIPTION'], capture_output=True, input=os_info.stdout).stdout.decode() 
 distro_ver =  subprocess.run(['grep', 'DISTRIB_RELEASE'], capture_output=True, input=os_info.stdout).stdout.decode()
-
-print(distro_info)#cleaning needed
-print(distro_ver)#cleaning needed
+print(distro_info + "\n" + distro_ver)#cleaning needed
 
 #Network info
+wifi_adapter = subprocess.run(['grep', 'Network controller:'], capture_output=True, input=lspci.stdout).stdout.decode()
+ip_address = subprocess.run(['ip', 'address'], capture_output=True)
+ip_string = subprocess.run(['grep', 'inet'], capture_output=True, input=ip_address.stdout).stdout.decode().split()
+print("Network info: \nWifi adapter:\n" + wifi_adapter)#cleaning needed
+print(ip_string)#need a better way to print the output, info are in the list generated, we can found ipv4, ipv6 and gateway
 
