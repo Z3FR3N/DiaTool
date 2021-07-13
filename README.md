@@ -23,9 +23,10 @@ This script is capable to:
 - Details on the platform which the system is running
 - Various Network manipulations:
 
-  - Change DNS  
+  - Change DNS
   - Ping
   - Display Traceroute
   - Packet loss
-
+  - See which ports are open/closed 
+  
 ---
