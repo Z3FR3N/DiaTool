@@ -2,7 +2,28 @@ import os
 import platform
 import subprocess
 import socket
- 
+
+def cmd_to_list(grep_param, cmd):
+    if (type(grep_param) == str) and (type(cmd) == str):
+        command = subprocess.run(cmd, capture_output=True)
+        cmd_list = subprocess.run(['grep', grep_param], input=command.stdout, capture_output=True).stdout.decode().split()
+        return list(cmd_list)
+    else:
+        print('input non valido') #debug reason
+
+def cmd_to_string(cmd):
+    command = subprocess.run(cmd, capture_output=True).stdout.decode()
+    return str(command)
+
+def run(cmd):
+    command = subprocess.run(cmd)
+
+print('PROVA DELLE FUNZIONI: \n')
+
+models_cpu = cmd_to_list('Model name:*', 'lscpu')
+print(models_cpu[3] + models_cpu[4])
+cmd_to_string('hostname')
+
 #user name
 print("user:")
 user_name = subprocess.run('whoami', capture_output=True).stdout.decode() #recover & convert string
