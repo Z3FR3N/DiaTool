@@ -8,11 +8,8 @@ ___
 
 Written in Python3, making use of the following **modules**:
 
-- os
-- platform
 - subprocess
-- socket
-
+- sys
 ___
 
 ### Features
