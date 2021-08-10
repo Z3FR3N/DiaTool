@@ -3,7 +3,7 @@ import subprocess
 
 #user name
 print("user:")
-user_name = subprocess.run('whoami', capture_output=True).stdout.decode() recover & convert string
+user_name = subprocess.run('whoami', capture_output=True).stdout.decode() #recover & convert string
 user_name = user_name[0:-1] #string cleaning, more readable
 print(user_name + "\n")
 
