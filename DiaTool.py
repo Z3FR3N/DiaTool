@@ -64,6 +64,8 @@ layout.split(
 if keep_alive == True:
     if current_os == 'linux':
 
+        #°°°°°°°°°° SUBPROCESS FUNCTIONS °°°°°°°°°°°#
+
         def grep_to_string(grep_param, cmd): #useful to change and manipolate the output
             if (type(grep_param) == str) and (type(cmd) == str):
                 command = subprocess.run(cmd, capture_output=True)  
@@ -84,6 +86,8 @@ if keep_alive == True:
             command = subprocess.run(cmd, capture_output=True).stdout.decode().split()
             return list(command)
 
+        #°°°°°°°°°° FUNCTIONS TO RETRIEVE INFORMATIONS °°°°°°°°°°°#
+
         def cpu_details():
             cpu_final =[] #final list
             specs_list = [] #support list
@@ -102,8 +106,7 @@ if keep_alive == True:
                 cpu_final.append(cpu_det_name[i])
                 cpu_final.append(specs_list[i])
             return(cpu_final)
-        cpu_final = cpu_details()
-        print(cpu_final)
+        print(cpu_details())
 
         def ram_details():
             ram_final =[] #final list
@@ -117,10 +120,9 @@ if keep_alive == True:
                 ram_final.append(ram_det_name[i])
                 ram_final.append(ram_details[i])
             return(ram_final)
-        ram_final = ram_details()
-        print(ram_final)
+        print(ram_details())
 
-        def disk_info(): #aggiungere lo stampaggio dei dischi con lsblk -S, usandolo anche per la dimensione dei dischi
+        def disk_info(): #disk space informations, if there are parallel interface(like SATA) we can retrieve the disk model
             disk_info_model = []
             disk_info_model1 = []
             disk_info_interface = []
@@ -132,14 +134,16 @@ if keep_alive == True:
                 disk_info_string1 = disk_info_model[i]
                 disk_info_string2 = disk_info_string1[24:-26].strip()
                 disk_info_model1.append(disk_info_string2)
-            disk_info_model1.pop(0)
-            disk_info_model1.pop(-1)
+            if len(disk_info_model1) > 0:
+                disk_info_model1.pop(0)
+                disk_info_model1.pop(-1)
             for i in range(len(disk_info_model)):
                 disk_info_string1 = disk_info_model[i]
                 disk_info_string2 = disk_info_string1[-4:].strip()
                 disk_info_interface.append(disk_info_string2)
-            disk_info_interface.pop(0)
-            disk_info_interface.pop(-1)
+            if len(disk_info_interface) > 0:
+                disk_info_interface.pop(0)
+                disk_info_interface.pop(-1)
             disk_info_sd_string = cmd_to_string(['lsblk', '-l'])
             disk_info_sd = disk_info_sd_string.split('\n')
             for i in range(len(disk_info_sd)):
@@ -150,8 +154,7 @@ if keep_alive == True:
                 disk_info_sd1.append(disk_info_sd[i])
             disk_info_sd1.pop(-1)
             return(disk_info_model1, disk_info_interface, disk_info_sd1)
-        disk_info_final = disk_info()
-        print(disk_info_final)
+        print(disk_info())
 
         def other_info(): #gpu integrated/dedicated, chipset version, usb/audio/sata controller with lscpi
             other_info_final = []
@@ -169,8 +172,7 @@ if keep_alive == True:
                 else:
                     other_info_final.append(other_info_string[s:])#usa lo slicing a 9 caratteri + il parametro grep
             return(other_info_final)
-        other_info_final = other_info()
-        print(other_info_final)
+        print(other_info())
 
         def network_details():
             ip_det = cmd_to_string(['ip', 'address'])
@@ -179,9 +181,12 @@ if keep_alive == True:
             network_info.pop(-1)
             for i in range(len(network_info)):
                 network_info[i] = network_info[i].lstrip()
+            for i in range(len(network_info):
+                if 
             return(network_info)
-        network_info = network_details()
-        print(network_info)
+        print(network_details())
+
+        #°°°°°°°°°° INTERFACE °°°°°°°°°°°#
     if current_os == 'win32':
         print("[TODO]")
 else:
