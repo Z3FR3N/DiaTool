@@ -134,14 +134,16 @@ if keep_alive == True:
                 disk_info_string1 = disk_info_model[i]
                 disk_info_string2 = disk_info_string1[24:-26].strip()
                 disk_info_model1.append(disk_info_string2)
-            if len(disk_info_model1) > 0:
+            n = len(disk_info_model1)
+            if n > 1:
                 disk_info_model1.pop(0)
                 disk_info_model1.pop(-1)
             for i in range(len(disk_info_model)):
                 disk_info_string1 = disk_info_model[i]
                 disk_info_string2 = disk_info_string1[-4:].strip()
                 disk_info_interface.append(disk_info_string2)
-            if len(disk_info_interface) > 0:
+            n = len(disk_info_interface)
+            if n > 1:
                 disk_info_interface.pop(0)
                 disk_info_interface.pop(-1)
             disk_info_sd_string = cmd_to_string(['lsblk', '-l'])
@@ -159,7 +161,7 @@ if keep_alive == True:
         def other_info(): #gpu integrated/dedicated, chipset version, usb/audio/sata controller with lscpi
             other_info_final = []
             other_info_list = []
-            other_info_det =["VGA compatible controller:", "Display controller:", "ISA bridge:", "USB controller:", "Audio device:", "SATA controller:", "Network controller:"]
+            other_info_det =["VGA compatible controller:", "Display controller:", "ISA bridge:", "USB controller:", "Audio device:", "SATA controller:","Non-Volatile memory controller:", "Network controller:", "3D controller:"]
             for i in range(len(other_info_det)):
                 grep_param = other_info_det[i]
                 s = 8 + len(grep_param) + 1
@@ -181,8 +183,8 @@ if keep_alive == True:
             network_info.pop(-1)
             for i in range(len(network_info)):
                 network_info[i] = network_info[i].lstrip()
-            for i in range(len(network_info):
-                if 
+            #for i in range(len(network_info):
+            #    if 
             return(network_info)
         print(network_details())
 
