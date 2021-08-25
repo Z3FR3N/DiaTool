@@ -10,15 +10,15 @@ Written in Python3, making use of the following **modules**:
 
 - subprocess
 - sys
+- rich
 ___
 
 ### Features
 
 This script is capable to:
 
-- Display of cpus cores, threads and other details about the sistem
-- Details on the platform which the system is running
-- Various Network manipulations:
+- Display of cpus cores, threads and other info about the sistem
+- Other features:
 
   - Change DNS
   - Ping
