@@ -60,7 +60,8 @@ layout.split(
         Layout(name="Other info"),
         Layout(name="interactive")
     )
-if welcome[1] == True:
+
+if keep_alive == True:
     if current_os == 'linux':
 
         def grep_to_string(grep_param, cmd): #useful to change and manipolate the output
@@ -119,7 +120,69 @@ if welcome[1] == True:
         ram_final = ram_details()
         print(ram_final)
 
-        def other_info(): #gpu integrated/dedicated, chipset version, usb/audio/sata controller
+        def disk_info(): #aggiungere lo stampaggio dei dischi con lsblk -S, usandolo anche per la dimensione dei dischi
+            disk_info_model = []
+            disk_info_model1 = []
+            disk_info_interface = []
+            disk_info_sd = []
+            disk_info_sd1 = []
+            disk_info_string = cmd_to_string(['lsblk', '-S'])
+            disk_info_model = disk_info_string.split('\n')
+            for i in range(len(disk_info_model)):
+                disk_info_string1 = disk_info_model[i]
+                disk_info_string2 = disk_info_string1[24:-26].strip()
+                disk_info_model1.append(disk_info_string2)
+            disk_info_model1.pop(0)
+            disk_info_model1.pop(-1)
+            for i in range(len(disk_info_model)):
+                disk_info_string1 = disk_info_model[i]
+                disk_info_string2 = disk_info_string1[-4:].strip()
+                disk_info_interface.append(disk_info_string2)
+            disk_info_interface.pop(0)
+            disk_info_interface.pop(-1)
+            disk_info_sd_string = cmd_to_string(['lsblk', '-l'])
+            disk_info_sd = disk_info_sd_string.split('\n')
+            for i in range(len(disk_info_sd)):
+                disk_info_sd[i] = disk_info_sd[i].strip()
+                if disk_info_sd[i].find('loop') != -1:
+                    n = i
+            for i in range(n+1, len(disk_info_sd)):
+                disk_info_sd1.append(disk_info_sd[i])
+            disk_info_sd1.pop(-1)
+            return(disk_info_model1, disk_info_interface, disk_info_sd1)
+        disk_info_final = disk_info()
+        print(disk_info_final)
 
+        def other_info(): #gpu integrated/dedicated, chipset version, usb/audio/sata controller with lscpi
+            other_info_final = []
+            other_info_list = []
+            other_info_det =["VGA compatible controller:", "Display controller:", "ISA bridge:", "USB controller:", "Audio device:", "SATA controller:", "Network controller:"]
+            for i in range(len(other_info_det)):
+                grep_param = other_info_det[i]
+                s = 8 + len(grep_param) + 1
+                other_info_string =grep_to_string(grep_param, 'lspci')
+                if other_info_string.find('\n') != -1:
+                    other_info_list = other_info_string.split('\n')
+                    for i in range(len(other_info_list)):
+                        other_info_string1 = (other_info_list[i])
+                        other_info_final.append(other_info_string1[s:])
+                else:
+                    other_info_final.append(other_info_string[s:])#usa lo slicing a 9 caratteri + il parametro grep
+            return(other_info_final)
+        other_info_final = other_info()
+        print(other_info_final)
 
         def network_details():
+            ip_det = cmd_to_string(['ip', 'address'])
+            network_info = []
+            network_info = ip_det.split('\n')
+            network_info.pop(-1)
+            for i in range(len(network_info)):
+                network_info[i] = network_info[i].lstrip()
+            return(network_info)
+        network_info = network_details()
+        print(network_info)
+    if current_os == 'win32':
+        print("[TODO]")
+else:
+    exit()
