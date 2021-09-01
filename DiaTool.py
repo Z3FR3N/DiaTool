@@ -1,9 +1,11 @@
+# https://docs.python.org/3/library/sys.html#sys.platform
+# https://docs.python.org/3/library/subprocess.html?highlight=subprocess#module-subprocess
+# https://rich.readthedocs.io/en/latest/index.html
 from os import name
 import time
 from inspect import Arguments
-import sys # https://docs.python.org/3/library/sys.html#sys.platform
-import subprocess # https://docs.python.org/3/library/subprocess.html?highlight=subprocess#module-subprocess
-# https://rich.readthedocs.io/en/latest/index.html
+import sys 
+import subprocess
 from rich import color, print, style, text 
 from rich import pretty
 from rich import inspect #display methods linked to any object
@@ -19,11 +21,13 @@ from rich.live import Live
 from rich.layout import Layout
 from rich.console import Console
 from rich.panel import Panel
+from rich.progress import Progress
 from rich import box
 import pyfiglet
 
 console = Console()
 layout = Layout()
+text = Text()
 
 keep_alive = True
 
@@ -32,7 +36,7 @@ def welcome_message():
         msg = ("We found ourselves in a [bold #ffa726]Linux-based[/bold #ffa726] system :penguin:\n")
         keep_alive = True
         return(msg, keep_alive)
-    if sys.platform.startswith('win32'):
+    elif sys.platform.startswith('win32'):
         msg = ("We found ourselves in a [bold #004d90]Windows-based[/bold #02a9f4] system \U0001fa9f \n\nHere's the details:\n")
         keep_alive = True
         return(msg, keep_alive)
@@ -61,10 +65,10 @@ layout.split(
         Layout(name="interactive")
     )
 
-if keep_alive == True:
+while keep_alive == True:
     if current_os == 'linux':
 
-        #°°°°°°°°°° SUBPROCESS FUNCTIONS °°°°°°°°°°°#
+        #°°°°°°°°°° USEFUL FUNCTIONS °°°°°°°°°°°#
 
         def grep_to_string(grep_param, cmd): #useful to change and manipolate the output
             if (type(grep_param) == str) and (type(cmd) == str):
@@ -85,6 +89,18 @@ if keep_alive == True:
         def cmd_to_list(cmd): #useful to immediately print the output onto a list
             command = subprocess.run(cmd, capture_output=True).stdout.decode().split()
             return list(command)
+        
+        def take_substring(end_char, string, ib): #input: the end character, the string to analyze and the index to begin with
+            end_char = str(end_char)
+            string = str(string)
+            ib = int(ib)
+            list =[]
+            while string[ib] != end_char:
+                list.append(string[ib])
+                ib = ib + 1
+            sep = ''
+            substring = sep.join(list)
+            return(substring)
 
         #°°°°°°°°°° FUNCTIONS TO RETRIEVE INFORMATIONS °°°°°°°°°°°#
 
@@ -140,7 +156,7 @@ if keep_alive == True:
                 disk_info_model1.pop(-1)
             for i in range(len(disk_info_model)):
                 disk_info_string1 = disk_info_model[i]
-                disk_info_string2 = disk_info_string1[-4:].strip()
+                disk_info_string2 = disk_info_string1[-4:]
                 disk_info_interface.append(disk_info_string2)
             n = len(disk_info_interface)
             if n > 1:
@@ -173,23 +189,120 @@ if keep_alive == True:
                         other_info_final.append(other_info_string1[s:])
                 else:
                     other_info_final.append(other_info_string[s:])#usa lo slicing a 9 caratteri + il parametro grep
+            while("" in other_info_final):
+                other_info_final.remove("")
             return(other_info_final)
         print(other_info())
 
         def network_details():
             ip_det = cmd_to_string(['ip', 'address'])
             network_info = []
+            name_list = []
+            mtu_list = []
+            mac_list = []
+            inet_list = []
+            inet6_list = []
+            bit_list = []
+            bit6_list = []
+            brd_list = []
+            state_list = []
+            qlen_list = []
             network_info = ip_det.split('\n')
-            network_info.pop(-1)
             for i in range(len(network_info)):
                 network_info[i] = network_info[i].lstrip()
-            #for i in range(len(network_info):
-            #    if 
-            return(network_info)
+                if network_info[i].find('mtu') != -1:
+                    n = 3
+                    name_list.append(take_substring(' ', network_info[i], n))
+                    n = network_info[i].index('mtu') + 4
+                    mtu_list.append(take_substring(' ', network_info[i], n))
+                    n = network_info[i].index('state') + len('state') + 1
+                    state_list.append(take_substring(' ', network_info[i], n))
+                    n = network_info[i].index('qlen') + len('qlen') + 1
+                    qlen_list.append(network_info[i][n:])
+                elif network_info[i].find('link/loopback') != -1:
+                    n = network_info[i].index('link/loopback')
+                    n = n + len('link/loopback') + 1
+                    mac_list.append(take_substring(' ', network_info[i], n))
+                elif network_info[i].find('link/ether') != -1:
+                    n = network_info[i].index('link/ether')
+                    n = n + len('link/ether') + 1
+                    mac_list.append(take_substring(' ', network_info[i], n))
+                elif network_info[i].find('inet ') != -1:
+                    n = len('inet ')
+                    inet_list.append(take_substring('/', network_info[i], n))
+                    n = network_info[i].index('/') + 1
+                    bit_list.append(take_substring(' ', network_info[i], n))
+                    if network_info[i].find('brd') != -1:
+                        n = network_info[i].index('brd') + len('brd') + 1
+                        brd_list.append(take_substring(' ', network_info[i], n))
+                elif network_info[i].find('inet6') != -1:
+                    n = len('inet6') + 1
+                    inet6_list.append(take_substring('/', network_info[i], n))
+                    n = network_info[i].index('/') + 1
+                    bit6_list.append(take_substring(' ', network_info[i], n))
+            for i in range(0, len(state_list)):
+                if state_list[i] == 'DOWN':
+                    inet_list.insert(i, 'not found')
+                    bit_list.insert(i, 'not found')
+                    brd_list.insert(i, 'not found')
+                    bit6_list.insert(i, 'not found')
+                    inet6_list.insert(i, 'not found')
+                if state_list[i] == 'UNKNOWN':
+                    brd_list.insert(i, 'not found')
+            return(network_info, name_list, mac_list, state_list, qlen_list, mtu_list, inet_list, bit_list, brd_list, inet6_list, bit6_list)
         print(network_details())
 
         #°°°°°°°°°° INTERFACE °°°°°°°°°°°#
+        
+        layout.split(
+            Layout(name="header", size=3),
+            Layout(name="cpu"),
+            Layout(name="ram"),
+            Layout(name="disk"),
+            Layout(name="network"),
+            Layout(name="Other info"),
+        )
+
+        layout["header"].split(
+            Align.center(
+                Panel.fit(cmd_to_string('hostname')[:-1], style="bold #ffa726", box = box.ROUNDED), 
+            )
+        )
+        layout["cpu"].split_column(
+            Align.center(
+                Panel('prova')
+            )
+        )
+        console.print(layout)
+        keep_alive = False
+
     if current_os == 'win32':
-        print("[TODO]")
+        console.print("I'm still developing this part sorry. \n")
+        
+        with Progress() as progress:
+
+            task1 = progress.add_task("[red]Playing video-games...", total=1000)
+            task2 = progress.add_task("[green]Cooking...", total=1000)
+            task3 = progress.add_task("[orchid]Eating pasta...", total=1000)
+            task4 = progress.add_task("[cyan1]Sleeping...", total=1000)
+            task5 = progress.add_task("[magenta]Eating pizza...", total=1000)
+            task6 = progress.add_task("[dark_orange3]Playing chitarra...", total=1000)
+            task7 = progress.add_task("[yellow]Studying (oh, cmon really?)...", total=1000)
+            task8 = progress.add_task("[violet]Cooking the pizza i ate before (whaat?)...", total=1000)
+            task9 = progress.add_task("[white]Browsing the Guatemala page in wikipedia...", total=1000)
+
+            while not progress.finished:
+                progress.update(task1, advance=1.5)
+                progress.update(task2, advance=0.3)
+                progress.update(task3, advance=0.7)
+                progress.update(task4, advance=0.9)
+                progress.update(task5, advance=1)
+                progress.update(task6, advance=0.5)
+                progress.update(task7, advance=0.1)
+                progress.update(task8, advance=0.6)
+                progress.update(task9, advance=0.8)
+                time.sleep(0.02)
+        valore = input("Inserire il valore: ")
+        keep_alive = valore
 else:
     exit()
