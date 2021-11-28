@@ -28,7 +28,7 @@ def welcome_message():
     logo = pyfiglet.figlet_format("D i a T o o l", font = "3-d") #just a nice logo
     console.print("\n" + logo, justify="center")
     if sys.platform.startswith('linux'):
-        msg = ("[bold yellow]Welcome[/bold yellow], this is a simple script to diagnose this machine and play with the network. If it's not displayed properly, just increase the terminal size. This is [bold #ffa726]Linux-based[/bold #ffa726] system, a wild penguin appears!\n")
+        msg = ("[bold yellow]Welcome[/bold yellow], this is a simple script to diagnose this machine and play with the network. If it's not displayed properly, please increase the terminal size. This is [bold #ffa726]Linux-based[/bold #ffa726] system, a wild penguin appears!\n")
         keep_alive = True
         console.print(msg)
     elif sys.platform.startswith('win32'):
@@ -36,10 +36,10 @@ def welcome_message():
         keep_alive = True
         console.print(msg)
     else:
-        msg = ("Unfortunately [bold #e91e63]i can't detect[/bold #e91e63] the os we are in, so i'm basically useless....\U0001f480")
+        msg = ("Unfortunately [bold #e91e63]i can't detect[/bold #e91e63] the os we are in, so i'm basically useless....Maybe you should read the readme\U0001f480")
         keep_alive = False
         console.print(msg)
-    return(keep_alive)
+    return keep_alive
 
 keep_alive = welcome_message()
 
@@ -82,7 +82,7 @@ while keep_alive == True:
 
         ## OPTIONS ##
 
-        def cpu_ram():
+        def cpu_ram(): #using lscpu
             cpu_final =[] #final list
             specs_list = [] #support list
             string_cpu2_to_list = [] #support list
@@ -129,11 +129,11 @@ while keep_alive == True:
             table.add_row("L1d cache:", cpu_final[17], "Total Swap:", ram_final[13])
             table.add_row("L1i cache:", cpu_final[19], "Used Swap:", ram_final[15])
             table.add_row("L2 cache:", cpu_final[21], "Free Swap:", ram_final[17])
-            table.add_row("L3 cache:", cpu_final[23])  
+            table.add_row("L3 cache:", cpu_final[23])
             console.print(table)
             return()
 
-        def disks(): #disk space informations, if there are parallel interface(like SATA) we can retrieve the disk model
+        def disks(): #using lsblk
             disk_info_model = []
             disk_info_model1 = []
             disk_info_interface = []
@@ -188,7 +188,7 @@ while keep_alive == True:
             console.print(table2)
             return()
 
-        def controllers(): #gpu integrated/dedicated, chipset version, usb/audio/sata controller with lscpi
+        def controllers(): #using grep with lscpi, with the most common names
             other_info_final = []
             other_info_list = []
             other_info_det =["VGA compatible controller:", "Display controller:", "ISA bridge:","Host bridge:", "USB controller:", "Audio device:", "SATA controller:","Non-Volatile memory controller:", "Network controller:", "3D controller:"]
@@ -215,7 +215,7 @@ while keep_alive == True:
             console.print(table3)
             return()
 
-        def network():
+        def network_inter(): #interpreting ip
             ip_a = cmd_to_string(['ip', 'a'])
             net_list = []
             net_list = ip_a.split(': ')
@@ -369,7 +369,7 @@ while keep_alive == True:
             console.print(Columns(tables, padding=(0, 0)))
             return()
 
-        def process_ports():
+        def net_process_ports(): #using lsof to detect an open network stream
             pr_list = cmd_to_list(['lsof', '-i', '-P', '-n'], '\n')
             pr_list.pop(0)
             pr_list.pop(-1)
@@ -402,16 +402,108 @@ while keep_alive == True:
             console.print(Panel(Columns(pr_tables), title="[bold green1]Pocesses and Ports[/bold green1]", padding= (1,0), box=box.HEAVY))
             return()
         
+        def public_ip(): # using ipinfo and curl
+            console.print(Align.center("\n[bold white]Here's your public IP:[/bold white] " + cmd_to_string(['curl', 'https://ipinfo.io/ip'])))
+            return()
+        
+        hostname = cmd_to_string("hostname")[0:-1]
+        username = cmd_to_list('who', ' ')[0]
+
         ## INTERFACE ##
 
-        def selector():
-            hostname = cmd_to_string("hostname")[0:-1]
-            interface = Tree("[bold #ffa726]:penguin: " + hostname + ":[/bold #ffa726]", guide_style="#ffa726")
-            interface.add(Panel("[1] :right_arrow: Show me CPU and RAM details!\n\n[2] :right_arrow: Show me CPU and RAM details!\n\n", padding=1, title="[bold green1]Type a number:[/bold green1]", expand=False))
+        def main_menu():
+            interface = Tree("[bold #ffa726]:penguin: " + hostname + " @ " + username + "[/bold #ffa726]", guide_style="#ffa726")
+            interface.add(Panel("[bold white][1] :right_arrow:  Show me [underline]CPU and RAM[/underline] details!\n\n[2] :right_arrow:  Show me [underline]disks[/underline] details!\n\n[3] :right_arrow:  Show me some [underline]controllers[/underline]!\n\n[4] :right_arrow:  Show me some [underline]network[/underline] magic!\n\n[5] :right_arrow:  Show me the [underline]Readme[/underline][/bold white]\n\n[bold green1]'main' to display again this panel\n'bye' to leave[/bold green1]", padding=1, title="[bold green1]Type a number:[/bold green1]", style="pale_turquoise1", expand=False))
             console.print(Align.center(interface))
+            return()
+        
+        def keep_moving():
+            console.print(Align.center("\n[bold white]You want to do some other stuff? (yes/no)[/bold white]\n"))
+            choice3 = console.input("                                       [bold #ffa726]>>[/bold #ffa726] ")
+            if choice3.lower() == "yes":
+                net_menu()
+            elif choice3.lower() == "nope":
+                console.print("bye dude")
+                exit()
+            elif choice3.lower() == "no":
+                exit()
+            else:
+                console.print("[bold white]Please type one of the options.[/bold white]")
+            return()
+        
+        def net_menu():
+            interface = Tree("[bold #ffa726]:penguin: " + hostname + " @ " + username + "[/bold #ffa726]", guide_style="#ffa726")
+            interface.add((Panel("[bold white]I can do some stuff with the network, pick one:\n\n[1] :right_arrow:  Print my [underline]network interfaces[/underline]\n\n[2] :right_arrow:  Print [underline]process and ports[/underline] which are using the network\n\n[3] :right_arrow:  Print my [underline]public IP[/underline]\n\n[4] :right_arrow:  scan my local network [/bold white]\n\n\t[bold green1]'main' to return at the main panel\n\t'net' to display this panel\n\t'bye' to leave[/bold green1]", title = "[bold green1]Network magic[/bold green1]", padding = 1, style = "pale_turquoise1", expand = False)))
+            console.print(Align.center(interface))
+            choice2 = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
+            choice2 = input_control(choice2)
+            if int(choice2) == 1:
+                network_inter()
+                keep_moving()
+            elif int(choice2) == 2:
+                net_process_ports()
+                keep_moving()
+            elif int(choice2) == 3:
+                public_ip()
+                keep_moving()
+            elif int(choice2) == 4:
+                keep_moving()
+            return()
+        
+        def input_control(choice):
+            choice = str(choice)
+            choice = choice.lower()
+            if choice == "bye":
+                exit()
+            elif choice == "main":
+                main_menu()
+                selector()
+            elif choice == "net":
+                net_menu()
+                selector()
+            control = choice.isnumeric()
+            while control == False:
+                console.print(Align.center("[bold red]Please, try again....[/bold red]"))
+                choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
+                if choice == "bye":
+                    exit()
+                elif choice == "options":
+                    main_menu()
+                    selector()
+                else:
+                    control = choice.isnumeric()
+                    if control == True:
+                        break
+            return str(choice)
+
+        def selector():
+            choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
+            choice = input_control(choice)
+            if int(choice) == 1:
+                cpu_ram()
+                selector()
+            elif int(choice) == 2:
+                disks()
+                selector()
+            elif int(choice) == 3:
+                controllers()
+                selector()
+            elif int(choice) == 4:
+                net_menu()
+            elif int(choice) == 5:
+                console.print("un bel readme fatto da me")
+                selector()
+            elif choice == "options":
+                main_menu()
+                selector()
+            else:
+                console.print("[bold green1]We still don't have this many options, please try again...[/bold green1]")
+                selector()
             return(choice)
 
+        main_menu()
         selector()
+
         # console.print(subprocess.run(['curl', 'https://ipinfo.io/ip']))
         # SUBNET MASK -> dai bit dell'ipv4
         # TEMPO DI LEASE -> sempre con ip
@@ -420,6 +512,7 @@ while keep_alive == True:
         # SCAN DELLA RETE LOCALE -> ping + analisi del TTL
         # LISTA DI SERVER DNS -> da fare: Cloudflare, Google public DNS, OpenDNS
         # DNS UTILIZZATO -> systemd-resolve
+
     if sys.platform.startswith('win32'):
         console.print("I'm still developing this part sorry. \n")
         
@@ -444,7 +537,5 @@ while keep_alive == True:
                 progress.update(task8, advance=0.6)
                 progress.update(task9, advance=0.8)
                 time.sleep(0.02)
-        valore = input("Inserire il valore: ")
-        keep_alive = valore
     else:
         exit()
