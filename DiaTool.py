@@ -68,7 +68,7 @@ while keep_alive == True:
             command = subprocess.run(cmd, capture_output=True).stdout.decode().split(sep)
             return list(command)
             
-        def take_substring(end_char, string, ib): #input: the end character, the string to analyze and the index to begin with
+        def take_substring(end_char, string, ib): #input: end character, string to analyze, the index to begin
                 end_char = str(end_char)
                 string = str(string)
                 ib = int(ib)
@@ -304,6 +304,24 @@ while keep_alive == True:
                     b = e + 1
                     e = string.find(" ", b)
                     result.append("[bold yellow]Bit IPv4:[/bold yellow] " + string[b:e])
+                    # calculating the subnet mask
+                    nr_bit = int(string[b:e])
+                    mask = ''
+                    sub_mask_final = ''
+                    for i in range(0,nr_bit):
+                        mask = mask + '1'
+                        i += 1
+                    for j in range(nr_bit, 32):
+                        mask = mask + '0'
+                        j += 1
+                    # mask ready
+                    sub_mask = []
+                    for i in range(0,len(mask), 8):
+                        mask_op = int(mask[i:i+8], 2)
+                        sub_mask.append(str(mask_op))
+                    sub_mask_final = ".".join(sub_mask)
+                    result.append(sub_mask_final)
+                    sub_mask.clear()
                     if string.find("brd", e) != -1:
                         b = string.find("brd", e) + len("brd") + 1
                         e = string.find("scope", b) - 1
@@ -328,6 +346,23 @@ while keep_alive == True:
                     e = string.find("/", b)
                     result.append("[bold yellow]IPv6:[/bold yellow] " + string[b:e])
                     result.append("[bold yellow]Bit IPv6:[/bold yellow] " + string[e+1:e+3])
+                    nr_bit = int(string[b + 1:e + 3])
+                    mask = ''
+                    sub_mask_final = ''
+                    for i in range(0,nr_bit):
+                        mask = mask + '1'
+                        i += 1
+                    for j in range(nr_bit, 64):
+                        mask = mask + '0'
+                        j += 1
+                    # mask ready
+                    sub_mask = []
+                    for i in range(0,len(mask), 8):
+                        mask_op = int(mask[i:i+8], 2)
+                        sub_mask.append(str(mask_op))
+                    sub_mask_final = ".".join(sub_mask)
+                    result.append(sub_mask_final)
+                    sub_mask.clear()
                 if string.rfind("valid_lft") != -1:
                     b = string.rfind("valid_lft") + len("valid_lft") + 1
                     e = string.find(" ", b)
@@ -501,10 +536,12 @@ while keep_alive == True:
                 selector()
             return(choice)
 
+        
+
         main_menu()
         selector()
 
-        # console.print(subprocess.run(['curl', 'https://ipinfo.io/ip']))
+        
         # SUBNET MASK -> dai bit dell'ipv4
         # TEMPO DI LEASE -> sempre con ip
         # CALCOLO PING MEDIO -> ping
