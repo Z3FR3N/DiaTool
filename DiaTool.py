@@ -28,7 +28,7 @@ def welcome_message():
     logo = pyfiglet.figlet_format("D i a T o o l", font = "3-d") #just a nice logo
     console.print("\n" + logo, justify="center")
     if sys.platform.startswith('linux'):
-        msg = ("[bold yellow]Welcome[/bold yellow], this is a simple script to diagnose this machine and play with the network. If it's not displayed properly, please increase the terminal size. This is [bold #ffa726]Linux-based[/bold #ffa726] system, a wild penguin appears!\n")
+        msg = ("[bold yellow]Welcome[/bold yellow], this is a dsimple script to diagnose this machine and play with the network. If it's not displayed properly, please increase the terminal size. This is [bold #ffa726]Linux-based[/bold #ffa726] system, a wild penguin appears!\n")
         keep_alive = True
         console.print(msg)
     elif sys.platform.startswith('win32'):
@@ -112,7 +112,6 @@ while keep_alive == True:
             n_threads = int(cpu_final[3]) # quick way to calculate how many cores the CPU has
             threads_per_core = int(cpu_final[5])
             n_core = n_threads / threads_per_core
-            n_core = int(n_core)
             n_core = str(n_core)
             table = Table(border_style="pale_turquoise1", expand=True, box=box.HEAVY_HEAD)
             table.add_column(Text('CPU info', style='bold green1', justify='center'), justify="right",   style="bold yellow")
@@ -215,6 +214,24 @@ while keep_alive == True:
             console.print(table3)
             return()
 
+        def subnet_mask4(bit):
+            nr_bit = int(bit)
+            mask = ''
+            sub_mask4_final = ''
+            for i in range(0,nr_bit):
+                mask = mask + '1'
+                i += 1
+            for j in range(nr_bit, 32):
+                mask = mask + '0'
+                j += 1
+            # mask ready
+            sub_mask = []
+            for i in range(0,len(mask), 8):
+                mask_op = int(mask[i:i+8], 2)
+                sub_mask.append(str(mask_op))
+            sub_mask4_final = ".".join(sub_mask)
+            return(sub_mask4_final)
+
         def network_inter(): #interpreting ip
             ip_a = cmd_to_string(['ip', 'a'])
             net_list = []
@@ -251,6 +268,7 @@ while keep_alive == True:
                     net_list[s] = net_list[s].replace('     ', ' ')
                     localhost.append(net_list[s][:-2])
             network = (wireless_list, localhost, ethernet_list)
+            
             def net_specs(list1):
                 result = []
                 string = str(list1)
@@ -305,23 +323,7 @@ while keep_alive == True:
                     e = string.find(" ", b)
                     result.append("[bold yellow]Bit IPv4:[/bold yellow] " + string[b:e])
                     # calculating the subnet mask
-                    nr_bit = int(string[b:e])
-                    mask = ''
-                    sub_mask_final = ''
-                    for i in range(0,nr_bit):
-                        mask = mask + '1'
-                        i += 1
-                    for j in range(nr_bit, 32):
-                        mask = mask + '0'
-                        j += 1
-                    # mask ready
-                    sub_mask = []
-                    for i in range(0,len(mask), 8):
-                        mask_op = int(mask[i:i+8], 2)
-                        sub_mask.append(str(mask_op))
-                    sub_mask_final = ".".join(sub_mask)
-                    result.append(sub_mask_final)
-                    sub_mask.clear()
+                    result.append("[bold yellow]Subnet mask:[/bold yellow] " + subnet_mask4(string[b:e]))
                     if string.find("brd", e) != -1:
                         b = string.find("brd", e) + len("brd") + 1
                         e = string.find("scope", b) - 1
@@ -346,23 +348,6 @@ while keep_alive == True:
                     e = string.find("/", b)
                     result.append("[bold yellow]IPv6:[/bold yellow] " + string[b:e])
                     result.append("[bold yellow]Bit IPv6:[/bold yellow] " + string[e+1:e+3])
-                    nr_bit = int(string[b + 1:e + 3])
-                    mask = ''
-                    sub_mask_final = ''
-                    for i in range(0,nr_bit):
-                        mask = mask + '1'
-                        i += 1
-                    for j in range(nr_bit, 64):
-                        mask = mask + '0'
-                        j += 1
-                    # mask ready
-                    sub_mask = []
-                    for i in range(0,len(mask), 8):
-                        mask_op = int(mask[i:i+8], 2)
-                        sub_mask.append(str(mask_op))
-                    sub_mask_final = ".".join(sub_mask)
-                    result.append(sub_mask_final)
-                    sub_mask.clear()
                 if string.rfind("valid_lft") != -1:
                     b = string.rfind("valid_lft") + len("valid_lft") + 1
                     e = string.find(" ", b)
@@ -372,6 +357,7 @@ while keep_alive == True:
                     e = string.find("'", b)
                     result.append("[bold yellow]Preferred lft:[/bold yellow] " + string[b:e])
                 return(result)
+            
             localhost = net_specs(network[1])
             wireless_list = net_specs(network[0])
             ethernet_list = net_specs(network[2])
@@ -454,7 +440,7 @@ while keep_alive == True:
         
         def keep_moving():
             console.print(Align.center("\n[bold white]You want to do some other stuff? (yes/no)[/bold white]\n"))
-            choice3 = console.input("                                       [bold #ffa726]>>[/bold #ffa726] ")
+            choice3 = console.input("                                     [bold #ffa726]>>[/bold #ffa726] ")
             if choice3.lower() == "yes":
                 net_menu()
             elif choice3.lower() == "nope":
@@ -468,7 +454,7 @@ while keep_alive == True:
         
         def net_menu():
             interface = Tree("[bold #ffa726]:penguin: " + hostname + " @ " + username + "[/bold #ffa726]", guide_style="#ffa726")
-            interface.add((Panel("[bold white]I can do some stuff with the network, pick one:\n\n[1] :right_arrow:  Print my [underline]network interfaces[/underline]\n\n[2] :right_arrow:  Print [underline]process and ports[/underline] which are using the network\n\n[3] :right_arrow:  Print my [underline]public IP[/underline]\n\n[4] :right_arrow:  scan my local network [/bold white]\n\n\t[bold green1]'main' to return at the main panel\n\t'net' to display this panel\n\t'bye' to leave[/bold green1]", title = "[bold green1]Network magic[/bold green1]", padding = 1, style = "pale_turquoise1", expand = False)))
+            interface.add((Panel("[bold white]I can do some stuff with the network, pick one:\n\n[1] :right_arrow:  Print my [underline]network interfaces[/underline]\n\n[2] :right_arrow:  Print [underline]process and ports[/underline] which are using the network\n\n[3] :right_arrow:  Print my [underline]public IP[/underline]\n\n[4] :right_arrow:  Scan my local network [/bold white]\n\n\t[bold green1]'main' to return at the main panel\n\t'net' to display this panel\n\t'bye' to leave[/bold green1]", title = "[bold green1]Network magic[/bold green1]", padding = 1, style = "pale_turquoise1", expand = False)))
             console.print(Align.center(interface))
             choice2 = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
             choice2 = input_control(choice2)
@@ -536,7 +522,6 @@ while keep_alive == True:
                 selector()
             return(choice)
 
-        
 
         main_menu()
         selector()
