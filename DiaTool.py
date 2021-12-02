@@ -2,12 +2,10 @@
 # https://docs.python.org/3/library/subprocess.html?highlight=subprocess#module-subprocess
 # https://rich.readthedocs.io/en/latest/index.html
 
-from os import name
 import time
 import sys 
 import subprocess
 from rich.columns import Columns
-from rich import print
 from rich.align import Align
 from rich.padding import Padding
 from rich.tree import Tree
@@ -15,7 +13,6 @@ from rich.text import Text
 from rich.live import Live
 from rich.layout import Layout
 from rich.console import Console
-from rich.emoji import Emoji
 from rich.panel import Panel
 from rich.table import Table
 from rich.progress import Progress
@@ -356,7 +353,7 @@ while keep_alive == True:
                     b = string.rfind("preferred_lft") + len("preferred_lft") + 1
                     e = string.find("'", b)
                     result.append("[bold yellow]Preferred lft:[/bold yellow] " + string[b:e])
-                return(result)
+                return result
             
             localhost = net_specs(network[1])
             wireless_list = net_specs(network[0])
@@ -439,9 +436,11 @@ while keep_alive == True:
             return()
         
         def keep_moving():
-            console.print(Align.center("\n[bold white]You want to do some other stuff? (yes/no)[/bold white]\n"))
+            console.print(Align.center("\n[bold white]You want to do some other stuff? (YES/no)[/bold white]\n"))
             choice3 = console.input("                                     [bold #ffa726]>>[/bold #ffa726] ")
             if choice3.lower() == "yes":
+                net_menu()
+            elif choice3 == "":
                 net_menu()
             elif choice3.lower() == "nope":
                 console.print("bye dude")
@@ -449,7 +448,8 @@ while keep_alive == True:
             elif choice3.lower() == "no":
                 exit()
             else:
-                console.print("[bold white]Please type one of the options.[/bold white]")
+                console.print(Align.center("\n[bold white]Please type one of the options.[/bold white]"))
+                keep_moving()
             return()
         
         def net_menu():
@@ -522,20 +522,18 @@ while keep_alive == True:
                 selector()
             return(choice)
 
-
+        subprocess.Popen
+        
         main_menu()
         selector()
 
-        
-        # SUBNET MASK -> dai bit dell'ipv4
-        # TEMPO DI LEASE -> sempre con ip
         # CALCOLO PING MEDIO -> ping
         # JITTER -> ping
         # SCAN DELLA RETE LOCALE -> ping + analisi del TTL
         # LISTA DI SERVER DNS -> da fare: Cloudflare, Google public DNS, OpenDNS
         # DNS UTILIZZATO -> systemd-resolve
 
-    if sys.platform.startswith('win32'):
+    if sys.platform.startswith('win'):
         console.print("I'm still developing this part sorry. \n")
         
         with Progress() as progress:
