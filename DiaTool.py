@@ -468,6 +468,8 @@ while keep_alive == True:
                 public_ip()
                 keep_moving()
             elif int(choice2) == 4:
+                ping = subprocess.call(['ping', '-c', '1', 'www.google.com'])
+                print(ping)
                 keep_moving()
             return()
         
