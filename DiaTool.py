@@ -25,7 +25,7 @@ def welcome_message():
     logo = pyfiglet.figlet_format("D i a T o o l", font = "3-d") #just a nice logo
     console.print("\n" + logo, justify="center")
     if sys.platform.startswith('linux'):
-        msg = ("[bold yellow]Welcome[/bold yellow], this is a dsimple script to diagnose this machine and play with the network. If it's not displayed properly, please increase the terminal size. This is [bold #ffa726]Linux-based[/bold #ffa726] system, a wild penguin appears!\n")
+        msg = ("[bold yellow]Welcome[/bold yellow], this is a dsimple script to diagnose this machine and play with the network. If it's not displayed properly, please increase the terminal size. This is a [bold #ffa726]Linux-based[/bold #ffa726] system, a wild penguin appears!\n")
         keep_alive = True
         console.print(msg)
     elif sys.platform.startswith('win32'):
@@ -51,12 +51,6 @@ while keep_alive == True:
                 cmd_string = subprocess.run(['grep', grep_param], input=command.stdout, capture_output=True)    .stdout.decode().strip()
                 return str(cmd_string)
 
-        def grep_to_list(grep_param, cmd): #useful to change and manipolate the output
-            if (type(grep_param) == str) and (type(cmd) == str):
-                command = subprocess.run(cmd, capture_output=True)  
-                cmd_list = subprocess.run(['grep', grep_param], input=command.stdout, capture_output=True). stdout.decode().split()
-                return list(cmd_list)
-
         def cmd_to_string(cmd): #useful to immediately print the output onto a string
                     command = subprocess.run(cmd, capture_output=True).stdout.decode()
                     return str(command)
@@ -65,17 +59,24 @@ while keep_alive == True:
             command = subprocess.run(cmd, capture_output=True).stdout.decode().split(sep)
             return list(command)
             
-        def take_substring(end_char, string, ib): #input: end character, string to analyze, the index to begin
+        def take_substring(end_char, string, i): #input: end character, string to analyze, the index to begin
                 end_char = str(end_char)
                 string = str(string)
-                ib = int(ib)
+                i = int(i)
                 list =[]
-                while string[ib] != end_char:
-                    list.append(string[ib])
-                    ib = ib + 1
+                while string[i] != end_char:
+                    list.append(string[i])
+                    i = i + 1
                 sep = ''
                 substring = sep.join(list)
-                return(substring)
+                return str(substring)
+
+        ## GLOBAL VARIABLES ##
+
+        hostname = cmd_to_string("hostname")[0:-1].strip()
+        username = cmd_to_list('who', ' ')[0].strip()
+        local_ip = ""
+        default_net_int = ""
 
         ## OPTIONS ##
 
@@ -127,7 +128,6 @@ while keep_alive == True:
             table.add_row("L2 cache:", cpu_final[21], "Free Swap:", ram_final[17])
             table.add_row("L3 cache:", cpu_final[23])
             console.print(table)
-            return()
 
         def disks(): #using lsblk
             disk_info_model = []
@@ -182,7 +182,6 @@ while keep_alive == True:
             table2.add_row("[bold yellow]MAJ:MIN[/bold yellow]\ndev type: nr dev\n\n[bold yellow]RM[/bold yellow]\nremovable device\n\n[bold yellow]RO[/bold yellow]\nread only device\n\n[bold yellow]MOUNTPOINT[/bold yellow]\nmount address", "[bold yellow]NAME     MAJ:MIN  RM   SIZE RO TYPE MOUNTPOINT[/bold yellow]\n\n" + disks_tree)
             table2.add_row()
             console.print(table2)
-            return()
 
         def controllers(): #using grep with lscpi, with the most common names
             other_info_final = []
@@ -209,7 +208,6 @@ while keep_alive == True:
             for i in range(len(controllers)):
                 table3.add_row(controllers[i])
             console.print(table3)
-            return()
 
         def subnet_mask4(bit):
             nr_bit = int(bit)
@@ -227,7 +225,7 @@ while keep_alive == True:
                 mask_op = int(mask[i:i+8], 2)
                 sub_mask.append(str(mask_op))
             sub_mask4_final = ".".join(sub_mask)
-            return(sub_mask4_final)
+            return sub_mask4_final
 
         def network_inter(): #interpreting ip
             ip_a = cmd_to_string(['ip', 'a'])
@@ -319,7 +317,6 @@ while keep_alive == True:
                     b = e + 1
                     e = string.find(" ", b)
                     result.append("[bold yellow]Bit IPv4:[/bold yellow] " + string[b:e])
-                    # calculating the subnet mask
                     result.append("[bold yellow]Subnet mask:[/bold yellow] " + subnet_mask4(string[b:e]))
                     if string.find("brd", e) != -1:
                         b = string.find("brd", e) + len("brd") + 1
@@ -385,7 +382,6 @@ while keep_alive == True:
             else:
                 tables.append(localhost_table)
             console.print(Columns(tables, padding=(0, 0)))
-            return()
 
         def net_process_ports(): #using lsof to detect an open network stream
             pr_list = cmd_to_list(['lsof', '-i', '-P', '-n'], '\n')
@@ -418,61 +414,64 @@ while keep_alive == True:
                         pr_table.add_row(Text(pr_list2[n][1]), Text(pr_list2[n][2]), Text(pr_list2[n][5]), Text(pr_list2[n][7]), Text(pr_list2[n][8]))
                 pr_tables.append(pr_table)
             console.print(Panel(Columns(pr_tables), title="[bold green1]Pocesses and Ports[/bold green1]", padding= (1,0), box=box.HEAVY))
-            return()
         
         def public_ip(): # using ipinfo and curl
-            console.print(Align.center("\n[bold white]Here's your public IP:[/bold white] " + cmd_to_string(['curl', 'https://ipinfo.io/ip'])))
-            return()
+            console.print(Align.center("\n[bold white]Here's your public IP:[/bold white] " + cmd_to_string(['curl', 'https://ipinfo.io/ip']) + "\n"))
+       
+        def local_scan():
+            global local_ip
+            global default_net_int
+            interfaces = []
+            state_up = []
+            inet = []
+            interfaces = cmd_to_list(['ip', 'a'], '\n')
+            for i in range(len(interfaces)):
+                interfaces == str(interfaces[i])
+            for i in range(len(interfaces)):
+                if interfaces[i].find('lo') != -1:
+                    i += 6
+                    if interfaces[i].find("state UP") != -1:
+                        state_up = interfaces[i].split()
+                        default_net_int = state_up[1][0:-1]
+                    if interfaces[i].find("inet ")  != -1:
+                        inet = interfaces[i].split()
+                        end = inet[1].index('/')
+                        local_ip = inet[1][0:end]
+            console.print(Panel(Align.center("Please double check, is this your local IP: [underline]" + local_ip + "[/underline] from [bold white]" + default_net_int + "[/bold white]?\n(YES/no)\nYou can find it in the interfaces tables from the [bold green1]net menù[/bold green1] or from the terminal with the command 'ip route show'"), padding= 1,expand= False ))
+            yn_selector()
         
-        hostname = cmd_to_string("hostname")[0:-1]
-        username = cmd_to_list('who', ' ')[0]
-
         ## INTERFACE ##
+        def yn_selector():
+
 
         def main_menu():
             interface = Tree("[bold #ffa726]:penguin: " + hostname + " @ " + username + "[/bold #ffa726]", guide_style="#ffa726")
             interface.add(Panel("[bold white][1] :right_arrow:  Show me [underline]CPU and RAM[/underline] details!\n\n[2] :right_arrow:  Show me [underline]disks[/underline] details!\n\n[3] :right_arrow:  Show me some [underline]controllers[/underline]!\n\n[4] :right_arrow:  Show me some [underline]network[/underline] magic!\n\n[5] :right_arrow:  Show me the [underline]Readme[/underline][/bold white]\n\n[bold green1]'main' to display again this panel\n'bye' to leave[/bold green1]", padding=1, title="[bold green1]Type a number:[/bold green1]", style="pale_turquoise1", expand=False))
             console.print(Align.center(interface))
-            return()
-        
-        def keep_moving():
-            console.print(Align.center("\n[bold white]You want to do some other stuff? (YES/no)[/bold white]\n"))
-            choice3 = console.input("                                     [bold #ffa726]>>[/bold #ffa726] ")
-            if choice3.lower() == "yes":
-                net_menu()
-            elif choice3 == "":
-                net_menu()
-            elif choice3.lower() == "nope":
-                console.print("bye dude")
-                exit()
-            elif choice3.lower() == "no":
-                exit()
-            else:
-                console.print(Align.center("\n[bold white]Please type one of the options.[/bold white]"))
-                keep_moving()
-            return()
         
         def net_menu():
             interface = Tree("[bold #ffa726]:penguin: " + hostname + " @ " + username + "[/bold #ffa726]", guide_style="#ffa726")
             interface.add((Panel("[bold white]I can do some stuff with the network, pick one:\n\n[1] :right_arrow:  Print my [underline]network interfaces[/underline]\n\n[2] :right_arrow:  Print [underline]process and ports[/underline] which are using the network\n\n[3] :right_arrow:  Print my [underline]public IP[/underline]\n\n[4] :right_arrow:  Scan my local network [/bold white]\n\n\t[bold green1]'main' to return at the main panel\n\t'net' to display this panel\n\t'bye' to leave[/bold green1]", title = "[bold green1]Network magic[/bold green1]", padding = 1, style = "pale_turquoise1", expand = False)))
             console.print(Align.center(interface))
-            choice2 = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
-            choice2 = input_control(choice2)
-            if int(choice2) == 1:
-                network_inter()
-                keep_moving()
-            elif int(choice2) == 2:
-                net_process_ports()
-                keep_moving()
-            elif int(choice2) == 3:
-                public_ip()
-                keep_moving()
-            elif int(choice2) == 4:
-                ping = subprocess.call(['ping', '-c', '1', 'www.google.com'])
-                print(ping)
-                keep_moving()
-            return()
+            net_selector()
         
+        def net_selector():
+            net_choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
+            net_choice = input_control(net_choice)
+            if int(net_choice) == 1:
+                network_inter()
+                net_selector()
+            elif int(net_choice) == 2:
+                net_process_ports()
+                net_selector()
+            elif int(net_choice) == 3:
+                public_ip()
+                net_selector()
+            elif int(net_choice) == 4:
+                local_scan()
+                net_selector()
+            return net_choice
+
         def input_control(choice):
             choice = str(choice)
             choice = choice.lower()
@@ -486,13 +485,15 @@ while keep_alive == True:
                 selector()
             control = choice.isnumeric()
             while control == False:
-                console.print(Align.center("[bold red]Please, try again....[/bold red]"))
+                console.print(Align.center("\n[bold red]Please, try again....[/bold red]\n"))
                 choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
                 if choice == "bye":
                     exit()
-                elif choice == "options":
+                elif choice == "main":
                     main_menu()
                     selector()
+                elif choice == "net":
+                    net_menu()
                 else:
                     control = choice.isnumeric()
                     if control == True:
@@ -516,16 +517,14 @@ while keep_alive == True:
             elif int(choice) == 5:
                 console.print("un bel readme fatto da me")
                 selector()
-            elif choice == "options":
+            elif choice == "main":
                 main_menu()
                 selector()
             else:
                 console.print("[bold green1]We still don't have this many options, please try again...[/bold green1]")
                 selector()
-            return(choice)
+            return choice
 
-        subprocess.Popen
-        
         main_menu()
         selector()
 
