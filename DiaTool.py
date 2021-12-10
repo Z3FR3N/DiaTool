@@ -5,6 +5,8 @@
 import time
 import sys 
 import subprocess
+import threading
+import concurrent.futures
 from rich.columns import Columns
 from rich.align import Align
 from rich.padding import Padding
@@ -25,11 +27,11 @@ def welcome_message():
     logo = pyfiglet.figlet_format("D i a T o o l", font = "3-d") #just a nice logo
     console.print("\n" + logo, justify="center")
     if sys.platform.startswith('linux'):
-        msg = ("[bold yellow]Welcome[/bold yellow], this is a dsimple script to diagnose this machine and play with the network. If it's not displayed properly, please increase the terminal size. This is a [bold #ffa726]Linux-based[/bold #ffa726] system, a wild penguin appears!\n")
+        msg = ("[bold yellow]Welcome[/bold yellow], this is a simple python :snake: script to diagnose this machine and play with the network. If it's not displayed properly, please increase the terminal size. This is a [bold #ffa726]Linux-based[/bold #ffa726] system, a wild penguin appears!\n")
         keep_alive = True
         console.print(msg)
-    elif sys.platform.startswith('win32'):
-        msg = ("[bold yellow]Welcome[/bold yellow], this is a simple script to diagnose this machine and play with the network. If it's not displayed properly, just increase the terminal size. This is a [bold #004d90]Windows-based[/bold #004d90] system, it's quite hot here, better open the windows. \U0001fa9f \n")
+    elif sys.platform.startswith('win'):
+        msg = ("[bold yellow]Welcome[/bold yellow], this is a simple python :snake: script to diagnose this machine and play with the network. If it's not displayed properly, just increase the terminal size. This is a [bold #004d90]Windows-based[/bold #004d90] system, it's quite hot here, better open the windows. \U0001fa9f \n")
         keep_alive = True
         console.print(msg)
     else:
@@ -48,7 +50,7 @@ while keep_alive == True:
         def grep_to_string(grep_param, cmd): #useful to change and manipolate the output
             if (type(grep_param) == str) and (type(cmd) == str):
                 command = subprocess.run(cmd, capture_output=True)  
-                cmd_string = subprocess.run(['grep', grep_param], input=command.stdout, capture_output=True)    .stdout.decode().strip()
+                cmd_string = subprocess.run(['grep', grep_param], input=command.stdout, capture_output=True).stdout.decode().strip()
                 return str(cmd_string)
 
         def cmd_to_string(cmd): #useful to immediately print the output onto a string
@@ -76,11 +78,12 @@ while keep_alive == True:
         hostname = cmd_to_string("hostname")[0:-1].strip()
         username = cmd_to_list('who', ' ')[0].strip()
         local_ip = ""
-        default_net_int = ""
+        subnet = ""
+        threads = int(take_substring('\n', grep_to_string("CPU(s)", 'lscpu'), 33).strip())
 
-        ## OPTIONS ##
+        ## MAIN MENU ##
 
-        def cpu_ram(): #using lscpu
+        def cpu_ram(): #using lscpu and free --mega
             cpu_final =[] #final list
             specs_list = [] #support list
             string_cpu2_to_list = [] #support list
@@ -110,6 +113,7 @@ while keep_alive == True:
             n_threads = int(cpu_final[3]) # quick way to calculate how many cores the CPU has
             threads_per_core = int(cpu_final[5])
             n_core = n_threads / threads_per_core
+            n_core = int(n_core)
             n_core = str(n_core)
             table = Table(border_style="pale_turquoise1", expand=True, box=box.HEAVY_HEAD)
             table.add_column(Text('CPU info', style='bold green1', justify='center'), justify="right",   style="bold yellow")
@@ -117,7 +121,8 @@ while keep_alive == True:
             table.add_column(Text('RAM info', style='bold green1', justify='center'), justify="right", style= "bold yellow")
             table.add_column(Text('RAM data', style='bold green1', justify='center'), justify="left"),
             table.add_row("Architecture:", cpu_final[1])
-            table.add_row("Core(s):", cpu_final[3], "Total:", ram_final[1])
+            table.add_row("CPU(s):", cpu_final[3])
+            table.add_row("Core(s):", n_core, "Total:", ram_final[1])
             table.add_row("Thread(s) per core:", cpu_final[5], "Used:", ram_final[3])
             table.add_row("Socket(s):", cpu_final[7], "Free:", ram_final[5])
             table.add_row("Model:", cpu_final[9][:-14], "Shared:", ram_final[7])
@@ -129,7 +134,7 @@ while keep_alive == True:
             table.add_row("L3 cache:", cpu_final[23])
             console.print(table)
 
-        def disks(): #using lsblk
+        def disks(): #using lsblk to detect disk structures
             disk_info_model = []
             disk_info_model1 = []
             disk_info_interface = []
@@ -209,7 +214,9 @@ while keep_alive == True:
                 table3.add_row(controllers[i])
             console.print(table3)
 
-        def subnet_mask4(bit):
+        ## NET MENU ##
+
+        def subnet_mask4(bit): #calculating the subnet mask
             nr_bit = int(bit)
             mask = ''
             sub_mask4_final = ''
@@ -227,7 +234,7 @@ while keep_alive == True:
             sub_mask4_final = ".".join(sub_mask)
             return sub_mask4_final
 
-        def network_inter(): #interpreting ip
+        def network_inter(): #interpreting ip a
             ip_a = cmd_to_string(['ip', 'a'])
             net_list = []
             net_list = ip_a.split(': ')
@@ -415,12 +422,16 @@ while keep_alive == True:
                 pr_tables.append(pr_table)
             console.print(Panel(Columns(pr_tables), title="[bold green1]Pocesses and Ports[/bold green1]", padding= (1,0), box=box.HEAVY))
         
-        def public_ip(): # using ipinfo and curl
+        def public_ip(): #using ipinfo and curl
             console.print(Align.center("\n[bold white]Here's your public IP:[/bold white] " + cmd_to_string(['curl', 'https://ipinfo.io/ip']) + "\n"))
-       
-        def local_scan():
+
+        def ping(ip):
+                return subprocess.run(['ping', '-w', '1', '-4', ip], capture_output=True).stdout.decode()
+                
+        def local_scan(): #using ping to scan the local network and ttl to detect the OS of the receiver
             global local_ip
             global default_net_int
+            global proceed
             interfaces = []
             state_up = []
             inet = []
@@ -437,18 +448,62 @@ while keep_alive == True:
                         inet = interfaces[i].split()
                         end = inet[1].index('/')
                         local_ip = inet[1][0:end]
-            console.print(Panel(Align.center("Please double check, is this your local IP: [underline]" + local_ip + "[/underline] from [bold white]" + default_net_int + "[/bold white]?\n(YES/no)\nYou can find it in the interfaces tables from the [bold green1]net menù[/bold green1] or from the terminal with the command 'ip route show'"), padding= 1,expand= False ))
+            console.print(Panel(Align.center("Please double check, is this your local IP: [underline]" + local_ip + "[/underline] from [underline]" + default_net_int + "[/underline]?\n" + "\n\t\t\t\t[bold white]YES/no[/bold white]\n" + "\nYou can find it in the interfaces tables from the [bold green1]net menù[/bold green1] or from the terminal with the command '[bold]ip route show[/bold]' or '[bold]ip a[bold]'"), padding= 1, expand = False))
             yn_selector()
+            end = local_ip.rfind(".")
+            global subnet
+            subnet = local_ip[0:end+1]
+            net = []
+            results = list(str())
+            def scan(ip): 
+                results.append(ping(ip))
+            for i in range(0,254):
+                ip = subnet + str(i)
+                if ip == local_ip:
+                    i += 1
+                    results.append(local_ip + " -> This machine\n")
+                net.append(ip)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1000) as executor:
+                executor.map(scan, net)
+            responded = list(str())
+            for i in range(len(results)):
+                if results[i].find("1 received") != -1:
+                    responded.append(results[i])
+            if len(responded) == 0:
+                console.print(Align.center("No device has responded"))
+            
+            #subprocess.call(comando ping + indirizzo) con threading
         
         ## INTERFACE ##
-        def yn_selector():
 
+        def yn_selector():
+            global local_ip
+            yn_choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
+            if yn_choice.lower() == "yes" or yn_choice == "":
+                console.print(Align.center("\nThanks!\n"))
+            elif yn_choice.lower() == "no":
+                console.print(Text("\nPlease note: if the address is wrong, the pings request might fail and the scan will return no result\n"), style="bold red", justify="center")
+                local_ip = console.input("\tPlease, type the right IP or 'back' [bold #ffa726]>>[/bold #ffa726] ")
+                if local_ip == "back":
+                    local_scan()
+                    yn_selector()
+                else:
+                    console.print(Text("\nPlease insert a valid choice\n"), style="bold red", justify="center")
+                    yn_selector()
+            elif yn_choice.lower() == "net":
+                net_menu()
+            elif yn_choice.lower() == "main":
+                main_menu()
+                selector()
+            else:
+                console.print(Align.center("[bold red]Please type yes or no...[/bold red]"))
+                yn_selector()
 
         def main_menu():
             interface = Tree("[bold #ffa726]:penguin: " + hostname + " @ " + username + "[/bold #ffa726]", guide_style="#ffa726")
             interface.add(Panel("[bold white][1] :right_arrow:  Show me [underline]CPU and RAM[/underline] details!\n\n[2] :right_arrow:  Show me [underline]disks[/underline] details!\n\n[3] :right_arrow:  Show me some [underline]controllers[/underline]!\n\n[4] :right_arrow:  Show me some [underline]network[/underline] magic!\n\n[5] :right_arrow:  Show me the [underline]Readme[/underline][/bold white]\n\n[bold green1]'main' to display again this panel\n'bye' to leave[/bold green1]", padding=1, title="[bold green1]Type a number:[/bold green1]", style="pale_turquoise1", expand=False))
             console.print(Align.center(interface))
-        
+     
         def net_menu():
             interface = Tree("[bold #ffa726]:penguin: " + hostname + " @ " + username + "[/bold #ffa726]", guide_style="#ffa726")
             interface.add((Panel("[bold white]I can do some stuff with the network, pick one:\n\n[1] :right_arrow:  Print my [underline]network interfaces[/underline]\n\n[2] :right_arrow:  Print [underline]process and ports[/underline] which are using the network\n\n[3] :right_arrow:  Print my [underline]public IP[/underline]\n\n[4] :right_arrow:  Scan my local network [/bold white]\n\n\t[bold green1]'main' to return at the main panel\n\t'net' to display this panel\n\t'bye' to leave[/bold green1]", title = "[bold green1]Network magic[/bold green1]", padding = 1, style = "pale_turquoise1", expand = False)))
@@ -482,7 +537,6 @@ while keep_alive == True:
                 selector()
             elif choice == "net":
                 net_menu()
-                selector()
             control = choice.isnumeric()
             while control == False:
                 console.print(Align.center("\n[bold red]Please, try again....[/bold red]\n"))
@@ -525,6 +579,8 @@ while keep_alive == True:
                 selector()
             return choice
 
+        ## "MAIN" ##
+        
         main_menu()
         selector()
 
