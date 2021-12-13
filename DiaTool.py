@@ -425,8 +425,8 @@ while keep_alive == True:
         def public_ip(): #using ipinfo and curl
             console.print(Align.center("\n[bold white]Here's your public IP:[/bold white] " + cmd_to_string(['curl', 'https://ipinfo.io/ip']) + "\n"))
 
-        def ping(ip):
-                return subprocess.run(['ping', '-w', '1', '-4', ip], capture_output=True).stdout.decode()
+        def ping(ip, timeout='1'):
+                return subprocess.run(['ping', '-w', timeout, '-4', ip], capture_output=True).stdout.decode()
                 
         def local_scan(): #using ping to scan the local network and ttl to detect the OS of the receiver
             global local_ip
@@ -457,22 +457,21 @@ while keep_alive == True:
             results = list(str())
             def scan(ip): 
                 results.append(ping(ip))
-            for i in range(0,254):
+            for i in range(0,254): #generating ip adresses for the local network (presuming we are scanning a class C net)
                 ip = subnet + str(i)
                 if ip == local_ip:
                     i += 1
-                    results.append(local_ip + " -> This machine\n")
+                    results.append(local_ip + " -> This machine")
                 net.append(ip)
-            with concurrent.futures.ThreadPoolExecutor(max_workers=1000) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1000) as executor: #enabling multithreading for faster response
                 executor.map(scan, net)
             responded = list(str())
             for i in range(len(results)):
-                if results[i].find("1 received") != -1:
+                if results[i].find("1 received") != -1 or results[i].find("This machine") != -1:
                     responded.append(results[i])
             if len(responded) == 0:
                 console.print(Align.center("No device has responded"))
-            
-            #subprocess.call(comando ping + indirizzo) con threading
+            console.print("hanno risposto con successo " + str(len(responded)) + " dispositivi")
         
         ## INTERFACE ##
 
