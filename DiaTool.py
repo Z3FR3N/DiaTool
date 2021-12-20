@@ -439,15 +439,13 @@ while keep_alive == True:
             for i in range(len(interfaces)):
                 interfaces == str(interfaces[i])
             for i in range(len(interfaces)):
-                if interfaces[i].find('lo') != -1:
-                    i += 6
-                    if interfaces[i].find("state UP") != -1:
-                        state_up = interfaces[i].split()
-                        default_net_int = state_up[1][0:-1]
-                    if interfaces[i].find("inet ")  != -1:
-                        inet = interfaces[i].split()
-                        end = inet[1].index('/')
-                        local_ip = inet[1][0:end]
+                if interfaces[i].find("state UP") != -1:
+                    state_up = interfaces[i].split()
+                    default_net_int = state_up[1][0:-1]
+                if interfaces[i].find("inet ")  != -1:
+                    inet = interfaces[i].split()
+                    end = inet[1].index('/')
+                    local_ip = inet[1][0:end]
             console.print(Panel(Align.center("Please double check, is this your local IP: [underline]" + local_ip + "[/underline] from [underline]" + default_net_int + "[/underline]?\n" + "\n\t\t\t\t[bold white]YES/no[/bold white]\n" + "\nYou can find it in the interfaces tables from the [bold green1]net menù[/bold green1] or from the terminal with the command '[bold]ip route show[/bold]' or '[bold]ip a[bold]'"), padding= 1, expand = False))
             yn_selector()
             end = local_ip.rfind(".")
@@ -472,6 +470,7 @@ while keep_alive == True:
             if len(responded) == 0:
                 console.print(Align.center("No device has responded"))
             console.print("hanno risposto con successo " + str(len(responded)) + " dispositivi")
+            print(responded)
         
         ## INTERFACE ##
 
