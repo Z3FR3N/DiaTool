@@ -421,13 +421,44 @@ while keep_alive == True:
                         pr_table.add_row(Text(pr_list2[n][1]), Text(pr_list2[n][2]), Text(pr_list2[n][5]), Text(pr_list2[n][7]), Text(pr_list2[n][8]))
                 pr_tables.append(pr_table)
             console.print(Panel(Columns(pr_tables), title="[bold green1]Pocesses and Ports[/bold green1]", padding= (1,0), box=box.HEAVY))
+            console.print(Align.center("If you want to see more information feel free to run this script as root:"))
+            console.print(Align.center("[bold white]'sudo -E path/of/the/script'[/bold white]"))
         
         def public_ip(): #using ipinfo and curl
             console.print(Align.center("\n[bold white]Here's your public IP:[/bold white] " + cmd_to_string(['curl', 'https://ipinfo.io/ip']) + "\n"))
 
         def ping(ip, timeout='1'):
                 return subprocess.run(['ping', '-w', timeout, '-4', ip], capture_output=True).stdout.decode()
-                
+        
+        def arping(ip, count='1', timeout='1'):
+            return subprocess.run(['sudo', 'arping', '-c', count, '-w', timeout, ip], capture_output=True).stdout.decode()
+        
+        def arping_installed():
+            control = cmd_to_string(['which', 'arping'])[0]
+            while control != '/':
+                console.print(Align.center("it seems you don't have arping installed, do you want to install it?\nYES/no"))
+                yn_choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
+                if yn_choice.lower() == "yes" or yn_choice == "":
+                    subprocess.run(['sudo', 'apt-get', 'install', 'arping'])
+                    break
+                elif yn_choice.lower() == "no":
+                    console.print(Align.center("Thanks!"))
+                    net_menu()
+                    selector()
+                    break
+                elif yn_choice.lower() == "net":
+                    net_menu()
+                    net_selector()
+                    break
+                elif yn_choice.lower() == "main":
+                    main_menu()
+                    selector()
+                    break
+                else:
+                    console.print(Text("\nPlease insert a valid choice\n"), style="bold red", justify="center")
+                    arping_installed()
+
+
         def local_scan(): #using ping to scan the local network and ttl to detect the OS of the receiver
             global local_ip
             global default_net_int
@@ -446,7 +477,7 @@ while keep_alive == True:
                     inet = interfaces[i].split()
                     end = inet[1].index('/')
                     local_ip = inet[1][0:end]
-            console.print(Panel(Align.center("Please double check, is this your local IP: [underline]" + local_ip + "[/underline] from [underline]" + default_net_int + "[/underline]?\n" + "\n\t\t\t\t[bold white]YES/no[/bold white]\n" + "\nYou can find it in the interfaces tables from the [bold green1]net menù[/bold green1] or from the terminal with the command '[bold]ip route show[/bold]' or '[bold]ip a[bold]'"), padding= 1, expand = False))
+            console.print(Panel(Align.center("Please double check, is this your local IP: [underline]" + local_ip + "[/underline] from [underline]" + default_net_int + "[/underline]?\n" + "\n\t\t\t\t[bold white]YES/no[/bold white]\n" + "\nYou can find it in the interfaces tables from the [bold green1]net menù[/bold green1] or from the terminal with the command '[bold]ip route show[/bold]' or '[bold]ip a[bold]'"), padding= 1, expand = False, border_style="cyan"))
             yn_selector()
             end = local_ip.rfind(".")
             global subnet
@@ -461,17 +492,72 @@ while keep_alive == True:
                     i += 1
                     results.append(local_ip + " -> This machine")
                 net.append(ip)
-            with concurrent.futures.ThreadPoolExecutor(max_workers=1000) as executor: #enabling multithreading for faster response
+            with concurrent.futures.ThreadPoolExecutor(max_workers=255) as executor: #enabling multithreading for faster response
                 executor.map(scan, net)
-            responded = list(str())
+            replied = list(str())
+            ip_replied = list(str())
             for i in range(len(results)):
                 if results[i].find("1 received") != -1 or results[i].find("This machine") != -1:
-                    responded.append(results[i])
-            if len(responded) == 0:
-                console.print(Align.center("No device has responded"))
-            console.print("hanno risposto con successo " + str(len(responded)) + " dispositivi")
-            print(responded)
-        
+                    replied.append(results[i])
+            results.clear()
+            if len(replied) == 0:
+                console.print(Align.center("No device has replied"))
+                net_menu()
+                net_selector()
+            else:
+                ping_table = Table(title="Ping Scan", show_lines=True, border_style="cyan", title_style="bold green1")
+                ping_table.add_column("")
+                ping_table.add_column("[bold #ffa726]Ip address[/bold #ffa726]", justify="center", style="white")
+                ping_table.add_column("[bold #ffa726]ttl[/bold #ffa726]", justify="center", style="white")
+                ping_table.add_column("[bold #ffa726]Device type[/bold #ffa726]", justify="center", style="white")
+                ping_table.add_column("[bold #ffa726]Time[/bold #ffa726]", justify="center", style="white")
+                for i in range(len(replied)):
+                    nr = str(i + 1)
+                    if replied[i].find(" -> This machine") != -1:
+                        ping_table.add_row(nr, local_ip, "//", "Local", "//")
+                        ip_replied.append(local_ip)
+                    else:
+                        ip_addr = replied[i][replied[i].index("from ") + 5: replied[i].index(": icmp_seq")]
+                        ip_replied.append(ip_addr)
+                        ttl = replied[i][replied[i].index("ttl=") + 4: replied[i].index(" time")]
+                        if ttl == "64":
+                            device_type = "Linux"
+                        elif ttl == "128":
+                            device_type = "Windows"
+                        else:
+                            device_type = "???"
+                        time = replied[i][replied[i].index("time=") + 5: replied[i].index("\n\n---")]
+                        ping_table.add_row(nr, ip_addr, ttl, device_type, time)
+                console.print(Align.center(ping_table))
+                console.print(Panel("Windows machines (for security reasons) may not reply to a standard icmp request (from ping command) but they might reply from an ARP request, which only show the active IPs on this subnet " + subnet + "[] proceed? YES/no"))
+                yn_choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
+                if yn_choice.lower() == "yes" or yn_choice == "":
+                    console.print(Align.center("\nThanks!\n"))
+                    arping_installed()
+                    def arp_scan(ip):
+                        results.append(arping(ip))
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=255) as executor:
+                        executor.map(arp_scan, net)
+                    arp_replied = list(str())
+                    for i in range(len(results)):
+                        if results[i].find("1 packets received") != -1 or results[i].find("This machine") != -1:
+                            arp_replied.append(results[i])  
+                    print(arp_replied)
+                    print(len(ip_replied))
+                    print(len(replied))
+                elif yn_choice.lower() == "no":
+                    net_menu()
+                    net_selector()
+                elif yn_choice.lower() == "net":
+                    net_menu()
+                elif yn_choice.lower() == "main":
+                    main_menu()
+                    selector()
+                else:
+                    console.print(Align.center("\n[bold red]Please type yes or no...[/bold red]\n"))
+                    net_menu()
+                    net_selector()
+            
         ## INTERFACE ##
 
         def yn_selector():
@@ -499,12 +585,12 @@ while keep_alive == True:
 
         def main_menu():
             interface = Tree("[bold #ffa726]:penguin: " + hostname + " @ " + username + "[/bold #ffa726]", guide_style="#ffa726")
-            interface.add(Panel("[bold white][1] :right_arrow:  Show me [underline]CPU and RAM[/underline] details!\n\n[2] :right_arrow:  Show me [underline]disks[/underline] details!\n\n[3] :right_arrow:  Show me some [underline]controllers[/underline]!\n\n[4] :right_arrow:  Show me some [underline]network[/underline] magic!\n\n[5] :right_arrow:  Show me the [underline]Readme[/underline][/bold white]\n\n[bold green1]'main' to display again this panel\n'bye' to leave[/bold green1]", padding=1, title="[bold green1]Type a number:[/bold green1]", style="pale_turquoise1", expand=False))
+            interface.add(Panel("[bold white][1] :right_arrow:  Show me [underline]CPU and RAM[/underline] details!\n\n[2] :right_arrow:  Show me [underline]disks[/underline] details!\n\n[3] :right_arrow:  Show me some [underline]controllers[/underline]!\n\n[4] :right_arrow:  Show me some [underline]network[/underline] magic!\n\n[5] :right_arrow:  Show me the [underline]Readme[/underline][/bold white]\n\n\t[bold green1]'main' :right_arrow:  this panel\n\t'bye' :right_arrow:  leave[/bold green1]", padding=1, title="[bold green1]Type a number:[/bold green1]", style="pale_turquoise1", expand=False))
             console.print(Align.center(interface))
      
         def net_menu():
             interface = Tree("[bold #ffa726]:penguin: " + hostname + " @ " + username + "[/bold #ffa726]", guide_style="#ffa726")
-            interface.add((Panel("[bold white]I can do some stuff with the network, pick one:\n\n[1] :right_arrow:  Print my [underline]network interfaces[/underline]\n\n[2] :right_arrow:  Print [underline]process and ports[/underline] which are using the network\n\n[3] :right_arrow:  Print my [underline]public IP[/underline]\n\n[4] :right_arrow:  Scan my local network [/bold white]\n\n\t[bold green1]'main' to return at the main panel\n\t'net' to display this panel\n\t'bye' to leave[/bold green1]", title = "[bold green1]Network magic[/bold green1]", padding = 1, style = "pale_turquoise1", expand = False)))
+            interface.add((Panel("[bold white][1] :right_arrow:  Print my [underline]network interfaces[/underline]\n\n[2] :right_arrow:  Print [underline]process and their ports[/underline]\n\n[3] :right_arrow:  Print my [underline]public IP[/underline]\n\n[4] :right_arrow:  Scan my [underline]local network[/underline][/bold white]\n\n\t[bold green1]'main' :right_arrow:  main panel\n\t'net' :right_arrow:  this panel\n\t'bye' :right_arrow:  leave[/bold green1]", title = "[bold green1]Network magic[/bold green1]", padding = 1, style = "pale_turquoise1", expand = False)))
             console.print(Align.center(interface))
             net_selector()
         
