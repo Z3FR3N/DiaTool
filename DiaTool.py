@@ -5,7 +5,6 @@
 import time
 import sys 
 import subprocess
-import threading
 import concurrent.futures
 from rich.columns import Columns
 from rich.align import Align
