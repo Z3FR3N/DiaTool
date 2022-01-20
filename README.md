@@ -1,29 +1,27 @@
 # DiaTool
-
-The aim of this project is to create a multi-platform tool to retrive various information for diagnostic.
-
-___
+ 
+The aim of this script is to visualize in a compact way all the information regarding the machine in which it's running. It uses as much as it can the standards commands.
 
 ## The Code
 
-Written in Python3, making use of the following **modules**:
+Written in Python (v3.9), making use of the following **modules**:
 
-- subprocess
-- sys
 - rich
+- pyfiglet
+
+In Linux:
+
+    sudo pip install rich pyfiglet
+
+In Windows:
+
+    pip install rich pyfiglet
 ___
 
-### Features
+## Features
 
 This script is capable to:
 
-- Display of cpus cores, threads and other info about the sistem
-- Other features:
-
-  - Change DNS
-  - Ping
-  - Display Traceroute
-  - Packet loss
-  - See which ports are open/closed 
-  
----
+- Display the number of cpus cores, threads, RAM and swap available
+- Make an ICMP/ARP scan of the subnet
+___
