@@ -1,19 +1,38 @@
 # https://docs.python.org/3/library/sys.html#sys.platform
 # https://docs.python.org/3/library/subprocess.html?highlight=subprocess#module-subprocess
 # https://rich.readthedocs.io/en/latest/index.html
+#
+# MIT License (MIT)
+#
+# Copyright © 2022 Luca Martinangeli
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy 
+# of this software and associated documentation files (the “Software”), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in 
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 import time
 import sys 
 import subprocess
-import threading
 import concurrent.futures
 from rich.columns import Columns
 from rich.align import Align
 from rich.padding import Padding
 from rich.tree import Tree
 from rich.text import Text
-from rich.live import Live
-from rich.layout import Layout
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -391,7 +410,22 @@ while keep_alive == True:
             console.print(Columns(tables, padding=(0, 0)))
 
         def net_process_ports(): #using lsof to detect an open network stream
-            pr_list = cmd_to_list(['lsof', '-i', '-P', '-n'], '\n')
+            console.print(Panel(Align.center("Running as root will display more informations, do you want run as root?\n\n\t\t\t\t   [bold]YES[/bold]/no"), padding=(1,1), expand = False, border_style="cyan"))
+            choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
+            if choice.lower() == 'yes' or '':
+                pr_list = cmd_to_list(['sudo', 'lsof', '-i', '-P', '-n'], '\n')
+            elif choice.lower() == 'net':
+                net_menu()
+                net_selector()
+            elif choice.lower == 'main':
+                main_menu()
+                selector()
+            elif choice.lower() == 'bye':
+                exit()
+            elif choice.lower() == 'no':
+                pr_list = cmd_to_list(['lsof', '-i', '-P', '-n'], '\n')
+            else:
+                net_process_ports()
             pr_list.pop(0)
             pr_list.pop(-1)
             pr_list2 = [[]]
@@ -421,14 +455,12 @@ while keep_alive == True:
                         pr_table.add_row(Text(pr_list2[n][1]), Text(pr_list2[n][2]), Text(pr_list2[n][5]), Text(pr_list2[n][7]), Text(pr_list2[n][8]))
                 pr_tables.append(pr_table)
             console.print(Panel(Columns(pr_tables), title="[bold green1]Pocesses and Ports[/bold green1]", padding= (1,0), box=box.HEAVY))
-            console.print(Align.center("If you want to see more information feel free to run this script as root:"))
-            console.print(Align.center("[bold white]'sudo -E path/of/the/script'[/bold white]"))
         
         def public_ip(): #using ipinfo and curl
             console.print(Align.center("\n[bold white]Here's your public IP:[/bold white] " + cmd_to_string(['curl', 'https://ipinfo.io/ip']) + "\n"))
 
-        def ping(ip, timeout='1'):
-                return subprocess.run(['ping', '-w', timeout, '-4', ip], capture_output=True).stdout.decode()
+        def ping(ip, timeout='1', count='1'):
+                return subprocess.run(['ping','-c', count, '-w', timeout, '-4', ip], capture_output=True).stdout.decode()
         
         def arping(ip, count='1', timeout='1'):
             return subprocess.run(['sudo', 'arping', '-c', count, '-w', timeout, ip], capture_output=True).stdout.decode()
@@ -436,7 +468,7 @@ while keep_alive == True:
         def arping_installed():
             control = cmd_to_string(['which', 'arping'])[0]
             while control != '/':
-                console.print(Align.center("it seems you don't have arping installed, do you want to install it?\nYES/no"))
+                console.print(Align.center("it seems you don't have arping installed, do you want to install it?\n[bold]YES/no[/bold]\n\nNote: will be used the apt package manager, please if you have another package manager type no and install it manually."))
                 yn_choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
                 if yn_choice.lower() == "yes" or yn_choice == "":
                     subprocess.run(['sudo', 'apt-get', 'install', 'arping'])
@@ -458,8 +490,7 @@ while keep_alive == True:
                     console.print(Text("\nPlease insert a valid choice\n"), style="bold red", justify="center")
                     arping_installed()
 
-
-        def local_scan(): #using ping to scan the local network and ttl to detect the OS of the receiver
+        def local_scan(): #using ping/arping to scan the local network, ttl to detect the OS of the receiver
             global local_ip
             global default_net_int
             global proceed
@@ -486,11 +517,11 @@ while keep_alive == True:
             results = list(str())
             def scan(ip): 
                 results.append(ping(ip))
-            for i in range(0,254): #generating ip adresses for the local network (presuming we are scanning a class C net)
+            for i in range(0,255): #generating ip adresses for the local network (presuming we are scanning a class C net)
                 ip = subnet + str(i)
                 if ip == local_ip:
-                    i += 1
                     results.append(local_ip + " -> This machine")
+                    continue
                 net.append(ip)
             with concurrent.futures.ThreadPoolExecutor(max_workers=255) as executor: #enabling multithreading for faster response
                 executor.map(scan, net)
@@ -507,7 +538,7 @@ while keep_alive == True:
             else:
                 ping_table = Table(title="Ping Scan", show_lines=True, border_style="cyan", title_style="bold green1")
                 ping_table.add_column("")
-                ping_table.add_column("[bold #ffa726]Ip address[/bold #ffa726]", justify="center", style="white")
+                ping_table.add_column("[bold #ffa726]IP address[/bold #ffa726]", justify="center", style="white")
                 ping_table.add_column("[bold #ffa726]ttl[/bold #ffa726]", justify="center", style="white")
                 ping_table.add_column("[bold #ffa726]Device type[/bold #ffa726]", justify="center", style="white")
                 ping_table.add_column("[bold #ffa726]Time[/bold #ffa726]", justify="center", style="white")
@@ -529,7 +560,7 @@ while keep_alive == True:
                         time = replied[i][replied[i].index("time=") + 5: replied[i].index("\n\n---")]
                         ping_table.add_row(nr, ip_addr, ttl, device_type, time)
                 console.print(Align.center(ping_table))
-                console.print(Panel("Windows machines (for security reasons) may not reply to a standard icmp request (from ping command) but they might reply from an ARP request, which only show the active IPs on this subnet " + subnet + "[] proceed? YES/no"))
+                console.print(Panel(Align.center("Windows machines (for security reasons) may not reply to a ping request, but they might reply from an ARP request in the subnet " + subnet + "[] proceed?\n\n\t\t\t\t[bold]YES/no[/bold]\n\nThis requires a special package in the Ubuntu repositories called 'Arping' (requires root), if the tables generated are the same then probably there aren't any Windows device in the subnet"), padding= (1,1), expand = False, border_style="cyan"))
                 yn_choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
                 if yn_choice.lower() == "yes" or yn_choice == "":
                     console.print(Align.center("\nThanks!\n"))
@@ -541,10 +572,31 @@ while keep_alive == True:
                     arp_replied = list(str())
                     for i in range(len(results)):
                         if results[i].find("1 packets received") != -1 or results[i].find("This machine") != -1:
-                            arp_replied.append(results[i])  
-                    print(arp_replied)
-                    print(len(ip_replied))
-                    print(len(replied))
+                            arp_replied.append(results[i])
+                    arping_ip = list(str())
+                    arping_mac = list(str())
+                    arping_time = list(str())
+                    for i in range(len(arp_replied)):
+                        if  arp_replied[i].find("ARPING ") != -1:
+                            b = arp_replied[i].find("ARPING ") + len("ARPING ")
+                            e = arp_replied[i].find("\n")
+                            arping_ip.append(arp_replied[i][b:e])
+                        if  arp_replied[i].find("from ") != -1:
+                            b = arp_replied[i].find("from ") + len("from ")
+                            e = arp_replied[i].find(" (")
+                            arping_mac.append(arp_replied[i][b:e])
+                        if  arp_replied[i].find("time=") != -1:
+                            b = arp_replied[i].find("time=") + len("time=")
+                            e = arp_replied[i].find("\n\n")
+                            arping_time.append(arp_replied[i][b:e])
+                    arping_table = Table(title="Arping Scan", show_lines=True, border_style="cyan", title_style="bold green1")
+                    arping_table.add_column("")
+                    arping_table.add_column("[bold #ffa726]IP address[/bold #ffa726]", justify="center", style="white")
+                    arping_table.add_column("[bold #ffa726]MAC Address[/bold #ffa726]", justify="center", style="white")
+                    arping_table.add_column("[bold #ffa726]Time[/bold #ffa726]", justify="center", style="white")
+                    for i in range(len(arping_ip)):
+                        arping_table.add_row(str(int(i)+1), str(arping_ip[i]), str(arping_mac[i]), str(arping_time[i]))
+                    console.print(Align.center(arping_table))
                 elif yn_choice.lower() == "no":
                     net_menu()
                     net_selector()
@@ -553,11 +605,99 @@ while keep_alive == True:
                 elif yn_choice.lower() == "main":
                     main_menu()
                     selector()
+                elif yn_choice.lower() == "bye":
+                    exit()
                 else:
                     console.print(Align.center("\n[bold red]Please type yes or no...[/bold red]\n"))
                     net_menu()
                     net_selector()
-            
+
+        def average_ping():
+            address_list = list(str())
+            console.print(Align.center("\nPlease type an [bold]address[/bold] or a [bold]domanin name[/bold]\n"))
+            choice = console.input("                                  [bold #ffa726]>>[/bold #ffa726] ")
+            if choice.lower() == "net":
+                net_menu()
+                address_list.clear()
+            elif choice.lower() == "main":
+                main_menu()
+                selector()
+                address_list.clear()
+            elif choice.lower() == "bye":
+                exit()
+            address_list.append(choice)
+            i = 9
+            while choice != "":
+                console.print(Text("\nIf you want, you can add another address, type 'stop' or nothing to confirm:\n"), justify='center')
+                choice = console.input("                                  [bold #ffa726]>>[/bold #ffa726] ")
+                if choice == "stop" or len(address_list) >= 10:
+                    break
+                elif choice == "":
+                    continue
+                elif choice.lower() == "net":
+                    net_menu()
+                    address_list.clear()
+                elif choice.lower() == "main":
+                    main_menu()
+                    selector()
+                    address_list.clear()
+                elif choice.lower() == "bye":
+                    exit()        
+                i -= 1
+                console.print(Align.center("\n" + str(i) + " remaining"))
+                address_list.append(choice)
+            ping_results = list(str())
+            ping_completed = list(str())
+            if len(address_list) == 0:
+                console.print(Align.center("No address to ping, please type somenthing!"))
+                average_ping()
+            else:
+                console.print(Align.center("\n...This may take a while...\n"))
+                def multiple_pings(ip):
+                    ping_results.append(ping(ip, '15', '15'))
+                with concurrent.futures.ThreadPoolExecutor(max_workers=225) as executor:
+                   executor.map(multiple_pings, address_list)
+                address_list.clear()
+                for i in range(len(ping_results)):
+                    if ping_results[i].rfind("---\n") != -1:
+                        b = ping_results[i].find("---\n")
+                        ping_completed.append(ping_results[i][b:])
+                        b = ping_results[i].find("PING ") + len("PING ")
+                        e = ping_results[i].find(" (")
+                        address_list.append(ping_results[i][b:e])
+                sent = list(str())
+                received = list(str())
+                loss = list(str())
+                time = list(str())
+                jitter = list(str())
+                for i in range(len(ping_completed)):
+                    b = ping_completed[i].find("---\n") + len("---\n")
+                    e = ping_completed[i].find(" packets transmitted")
+                    sent.append(ping_completed[i][b:e])
+                    b = ping_completed[i].find(", ") + len(", ")
+                    e = ping_completed[i].find(" received")
+                    received.append(ping_completed[i][b:e])
+                    b1 = ping_completed[i].find(", ", e) + len(", ")
+                    e1 = ping_completed[i].find(" packet loss", e)
+                    loss.append(ping_completed[i][b1:e1])
+                    b2 = ping_completed[i].find("min/avg/max/mdev = ") + len("min/avg/max/mdev = ")
+                    b2 = ping_completed[i].find("/", b2)
+                    e2 = ping_completed[i].find("/", b2+1)
+                    time.append(ping_completed[i][b2+1:e2] + " ms")
+                    b3 = ping_completed[i].rfind("/")
+                    e3 = ping_completed[i].find("\n", b3)
+                    jitter.append(ping_completed[i][b3+1:e3])
+                multiple_pings_table = Table(title="Results", show_lines=True, border_style="cyan", title_style="bold green1")
+                multiple_pings_table.add_column("[bold #ffa726]Address[/bold #ffa726]")
+                multiple_pings_table.add_column("[bold #ffa726]Sent[/bold #ffa726]", justify="center")
+                multiple_pings_table.add_column("[bold #ffa726]Received[/bold #ffa726]", justify="center")
+                multiple_pings_table.add_column("[bold #ffa726]Loss[/bold #ffa726]", justify="center")
+                multiple_pings_table.add_column("[bold #ffa726]Time[/bold #ffa726]")#round trip time average - rtt avg
+                multiple_pings_table.add_column("[bold #ffa726]Jitter[/bold #ffa726]")#mdev
+                for i in range(len(address_list)):
+                    multiple_pings_table.add_row(address_list[i], sent[i], received[i], loss[i], time[i], jitter[i])
+                console.print(Align.center(multiple_pings_table))
+
         ## INTERFACE ##
 
         def yn_selector():
@@ -590,7 +730,7 @@ while keep_alive == True:
      
         def net_menu():
             interface = Tree("[bold #ffa726]:penguin: " + hostname + " @ " + username + "[/bold #ffa726]", guide_style="#ffa726")
-            interface.add((Panel("[bold white][1] :right_arrow:  Print my [underline]network interfaces[/underline]\n\n[2] :right_arrow:  Print [underline]process and their ports[/underline]\n\n[3] :right_arrow:  Print my [underline]public IP[/underline]\n\n[4] :right_arrow:  Scan my [underline]local network[/underline][/bold white]\n\n\t[bold green1]'main' :right_arrow:  main panel\n\t'net' :right_arrow:  this panel\n\t'bye' :right_arrow:  leave[/bold green1]", title = "[bold green1]Network magic[/bold green1]", padding = 1, style = "pale_turquoise1", expand = False)))
+            interface.add((Panel("[bold white][1] :right_arrow:  Print my [underline]network interfaces[/underline]\n\n[2] :right_arrow:  Print [underline]process and their ports[/underline]\n\n[3] :right_arrow:  Print my [underline]public IP[/underline]\n\n[4] :right_arrow:  Scan my [underline]local network[/underline][/bold white]\n\n[5] :right_arrow: Ping one or more addresses\n\n\t[bold green1]'main' :right_arrow:  main panel\n\t'net' :right_arrow:  this panel\n\t'bye' :right_arrow:  leave[/bold green1]", title = "[bold green1]Network magic[/bold green1]", padding = 1, style = "pale_turquoise1", expand = False)))
             console.print(Align.center(interface))
             net_selector()
         
@@ -608,6 +748,9 @@ while keep_alive == True:
                 net_selector()
             elif int(net_choice) == 4:
                 local_scan()
+                net_selector()
+            elif int(net_choice) == 5:
+                average_ping()
                 net_selector()
             return net_choice
 
@@ -670,7 +813,6 @@ while keep_alive == True:
 
         # CALCOLO PING MEDIO -> ping
         # JITTER -> ping
-        # SCAN DELLA RETE LOCALE -> ping + analisi del TTL
         # LISTA DI SERVER DNS -> da fare: Cloudflare, Google public DNS, OpenDNS
         # DNS UTILIZZATO -> systemd-resolve
 
@@ -699,4 +841,4 @@ while keep_alive == True:
                 progress.update(task9, advance=0.8)
                 time.sleep(0.02)
     else:
-        exit()
+        exit
