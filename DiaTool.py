@@ -23,7 +23,9 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+#
 
+from itertools import count
 import time
 import sys 
 import subprocess
@@ -38,19 +40,17 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.progress import Progress
 from rich import box
-import pyfiglet
+
 
 console = Console(width=80)
 
 def welcome_message():
-    logo = pyfiglet.figlet_format("D i a T o o l", font = "3-d") #just a nice logo
-    console.print("\n" + logo, justify="center")
     if sys.platform.startswith('linux'):
-        msg = ("[bold yellow]Welcome[/bold yellow], this is a simple python :snake: script to diagnose this machine and play with the network. If it's not displayed properly, please increase the terminal size. This is a [bold #ffa726]Linux-based[/bold #ffa726] system, a wild penguin appears!\n")
+        msg = ("\n[bold yellow]Welcome![/bold yellow] This is a simple python :snake: script to diagnose this machine and play with the network. If it's not displayed properly, please consider to increase the terminal size. This is a [bold #ffa726]Linux-based[/bold #ffa726] system, a wild penguin appears!\n")
         keep_alive = True
         console.print(msg)
     elif sys.platform.startswith('win'):
-        msg = ("[bold yellow]Welcome[/bold yellow], this is a simple python :snake: script to diagnose this machine and play with the network. If it's not displayed properly, just increase the terminal size. This is a [bold #004d90]Windows-based[/bold #004d90] system, it's quite hot here, better open the windows. \U0001fa9f \n")
+        msg = ("[bold yellow]Welcome![/bold yellow], this is a simple python :snake: script to diagnose this machine and play with the network. If it's not displayed properly, just increase the terminal size. This is a [bold #004d90]Windows-based[/bold #004d90] system, it's quite hot here, better open the windows. \U0001fa9f \n")
         keep_alive = True
         console.print(msg)
     else:
@@ -412,7 +412,8 @@ while keep_alive == True:
         def net_process_ports(): #using lsof to detect an open network stream
             console.print(Panel(Align.center("Running as root will display more informations, do you want run as root?\n\n\t\t\t\t   [bold]YES[/bold]/no"), padding=(1,1), expand = False, border_style="cyan"))
             choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
-            if choice.lower() == 'yes' or '':
+            pr_list = list(str())
+            if choice.lower() == 'yes' or choice.lower() == '':
                 pr_list = cmd_to_list(['sudo', 'lsof', '-i', '-P', '-n'], '\n')
             elif choice.lower() == 'net':
                 net_menu()
@@ -442,7 +443,7 @@ while keep_alive == True:
                     pr_name.append(pr_list2[i][0])
                 else:
                     i =+ 1
-            pr_tables = []
+            pr_tables = list()
             for i in range(len(pr_name)):
                 pr_table = Table(title=Text(pr_name[i], style="bold #ffa726"), border_style="pale_turquoise1", expand = True, box=box.HEAVY_HEAD)
                 pr_table.add_column("[bold yellow]PID[/bold yellow]", justify="center")
@@ -465,7 +466,7 @@ while keep_alive == True:
         def arping(ip, count='1', timeout='1'):
             return subprocess.run(['sudo', 'arping', '-c', count, '-w', timeout, ip], capture_output=True).stdout.decode()
         
-        def arping_installed():
+        def arping_installed(): #check with apt if arping is installed
             control = cmd_to_string(['which', 'arping'])[0]
             while control != '/':
                 console.print(Align.center("it seems you don't have arping installed, do you want to install it?\n[bold]YES/no[/bold]\n\nNote: will be used the apt package manager, please if you have another package manager type no and install it manually."))
@@ -612,7 +613,7 @@ while keep_alive == True:
                     net_menu()
                     net_selector()
 
-        def average_ping():
+        def average_ping(): #pinging 15 addresses and returning stats
             address_list = list(str())
             console.print(Align.center("\nPlease type an [bold]address[/bold] or a [bold]domanin name[/bold]\n"))
             choice = console.input("                                  [bold #ffa726]>>[/bold #ffa726] ")
@@ -625,33 +626,39 @@ while keep_alive == True:
                 address_list.clear()
             elif choice.lower() == "bye":
                 exit()
-            address_list.append(choice)
+            address_list.append(choice.lower())
             i = 9
-            while choice != "":
-                console.print(Text("\nIf you want, you can add another address, type 'stop' or nothing to confirm:\n"), justify='center')
-                choice = console.input("                                  [bold #ffa726]>>[/bold #ffa726] ")
-                if choice == "stop" or len(address_list) >= 10:
-                    break
-                elif choice == "":
-                    continue
-                elif choice.lower() == "net":
-                    net_menu()
-                    address_list.clear()
-                elif choice.lower() == "main":
-                    main_menu()
-                    selector()
-                    address_list.clear()
-                elif choice.lower() == "bye":
-                    exit()        
-                i -= 1
-                console.print(Align.center("\n" + str(i) + " remaining"))
-                address_list.append(choice)
-            ping_results = list(str())
-            ping_completed = list(str())
+            def popolate_address_list(address_list, i, choice):
+                while choice != "":
+                    console.print(Text("\nIf you want, you can add another address, type 'stop' or nothing to confirm:\n"), justify='center')
+                    choice = console.input("                                  [bold #ffa726]>>[/bold #ffa726] ")
+                    if choice == "stop" or len(address_list) >= 10 or choice == "":
+                        break
+                    elif choice.lower() == "net":
+                        net_menu()
+                        address_list.clear()
+                    elif choice.lower() == "main":
+                        main_menu()
+                        selector()
+                        address_list.clear()
+                    elif choice.lower() == "bye":
+                        exit()        
+                    elif address_list.count(choice) >= 1:
+                        console.print(Text("\nAddress already in the list!\n" + str(i) + " remaining"), justify="center")
+                        popolate_address_list(address_list, i, choice)
+                        break
+                    else:
+                        i -= 1    
+                        console.print(Align.center("\n" + str(i) + " remaining"))
+                        address_list.append(choice.lower())
+                return(list(address_list))
+            address_list = popolate_address_list(address_list, i, choice)
             if len(address_list) == 0:
                 console.print(Align.center("No address to ping, please type somenthing!"))
                 average_ping()
             else:
+                ping_results = list(str())
+                ping_completed = list(str())
                 console.print(Align.center("\n...This may take a while...\n"))
                 def multiple_pings(ip):
                     ping_results.append(ping(ip, '15', '15'))
@@ -690,13 +697,96 @@ while keep_alive == True:
                 multiple_pings_table = Table(title="Results", show_lines=True, border_style="cyan", title_style="bold green1")
                 multiple_pings_table.add_column("[bold #ffa726]Address[/bold #ffa726]")
                 multiple_pings_table.add_column("[bold #ffa726]Sent[/bold #ffa726]", justify="center")
-                multiple_pings_table.add_column("[bold #ffa726]Received[/bold #ffa726]", justify="center")
+                multiple_pings_table.add_column("[bold #ffa726]Rec.[/bold #ffa726]", justify="center")
                 multiple_pings_table.add_column("[bold #ffa726]Loss[/bold #ffa726]", justify="center")
-                multiple_pings_table.add_column("[bold #ffa726]Time[/bold #ffa726]")#round trip time average - rtt avg
-                multiple_pings_table.add_column("[bold #ffa726]Jitter[/bold #ffa726]")#mdev
+                multiple_pings_table.add_column("[bold #ffa726]rtt avg[/bold #ffa726]", justify="center")#round trip time average - rtt avg
+                multiple_pings_table.add_column("[bold #ffa726]Jitter avg[/bold #ffa726]")#mdev
                 for i in range(len(address_list)):
                     multiple_pings_table.add_row(address_list[i], sent[i], received[i], loss[i], time[i], jitter[i])
                 console.print(Align.center(multiple_pings_table))
+
+        def dns_list():
+            console.print(Text("\n....This may take a while....", justify="center"))
+            dns_name = ['Google', 'Quad9', 'OpenDNS', 'Cloudflare', 'CleanBrowsing', 'Alternate DNS', 'Adguard', 'DNS.Watch', 'Comodo Secure DNS', 'Centurylink (Level3)', 'SafeSDN', 'OpenNIC', 'Dyn', 'FreeDNS', 'UncensoredDNS', 'Neustar', 'ControlD']
+            primary_add = ['8.8.8.8','9.9.9.9', '208.67.222.222', '1.1.1.1', '185.228.168.9', '76.76.19.19', '94.140.14.14', '84.200.69.80', '8.26.56.26', '205.171.3.65', '195.46.39.39', '159.89.120.99', '216.146.35.35', '45.33.97.5', '91.239.100.100', '64.6.64.6', '76.76.2.0']
+            secondary_add = ['8.8.4.4', '149.112.112.112', '208.67.220.220', '1.0.0.1', '185.228.169.9', '76.223.122.150', '94.140.15.15', '84.200.70.40', '8.20.247.20', '205.171.2.65', '195.46.39.40', '134.195.4.2', '216.146.36.36', '37.235.1.177', '89.233.43.71', '64.6.65.6','76.76.10.0']
+            primary_response = list(str())
+            secondary_response = list(str())
+            def pings(ip1, ip2):
+                primary_response.append(ping(ip1))
+                secondary_response.append(ping(ip2))
+            with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
+                   executor.map(pings, primary_add, secondary_add)
+            primary_result = list(str())
+            secondary_result = list(str())
+            primary_no_response = list(str())
+            secondary_no_response = list(str())
+            for i in range(len(primary_response)):
+                for j in range(len(primary_add)):
+                    if primary_response[i].find(primary_add[j]) != -1:
+                        if primary_response[i].find(" = ") != -1:
+                            b = primary_response[i].find(" = ")
+                            b1 = primary_response[i].find("/", b)
+                            e = primary_response[i].find("/", b1+1)
+                            primary_stats = {
+                                "name": dns_name[j],
+                                "primary address": primary_add[j],
+                                "time" : primary_response[i][b1+1:e],
+                            }
+                            primary_result.append(primary_stats)
+                        else:
+                            primary_stats = {
+                                "name": dns_name[j],
+                                "primary address": primary_add[j],
+                                "time" : "No response",
+                            }
+                            primary_no_response.append(primary_stats)
+            for i in range(len(secondary_response)):
+                for j in range(len(secondary_add)):
+                    if secondary_response[i].find(secondary_add[j]) != -1:
+                        if secondary_response[i].find(" = ") != -1:
+                            b = secondary_response[i].find(" = ")
+                            b1 = secondary_response[i].find("/", b)
+                            e = secondary_response[i].find("/", b1+1)
+                            secondary_stats = {
+                                "name": dns_name[j],
+                                "primary address": secondary_add[j],
+                                "time" : secondary_response[i][b1+1:e],
+                            }
+                            secondary_result.append(secondary_stats)
+                        else:
+                            secondary_stats = {
+                                "name": dns_name[j],
+                                "primary address": secondary_add[j],
+                                "time" : "No response",
+                            }
+                            secondary_no_response.append(secondary_stats)
+            def sorting_results(result):
+                return float(result["time"])
+            primary_result.sort(key = sorting_results)
+            secondary_result.sort(key = sorting_results)
+            primary_dns_table = Table(title= "Primary DNS")
+            primary_dns_table.add_column("")
+            primary_dns_table.add_column("Name")
+            primary_dns_table.add_column("Address")
+            primary_dns_table.add_column("Time")
+            for i in range(len(primary_result)):
+                x = dict(primary_result[i])
+                primary_dns_table.add_row(str(i+1), x.get("name"), x.get("primary address"), x.get("time"))
+            if len(primary_no_response) >= 1:
+                for j in range(len(primary_no_response)):
+                    x = dict(primary_no_response[j])
+                    primary_dns_table.add_row(str(j+1), x.get("name"), x.get("primary address"), x.get("time"))
+            secondary_dns_table = Table(title= "Secondary DNS")
+            secondary_dns_table.add_column("")
+            secondary_dns_table.add_column("Name")
+            secondary_dns_table.add_column("Address")
+            secondary_dns_table.add_column("Time")
+            for i in range(len(secondary_result)):
+                x = dict(secondary_result[i])
+                secondary_dns_table.add_row(str(i+1), x.get("name"), x.get("primary address"), x.get("time"))
+            console.print(primary_dns_table)
+            console.print(secondary_dns_table)
 
         ## INTERFACE ##
 
@@ -730,7 +820,7 @@ while keep_alive == True:
      
         def net_menu():
             interface = Tree("[bold #ffa726]:penguin: " + hostname + " @ " + username + "[/bold #ffa726]", guide_style="#ffa726")
-            interface.add((Panel("[bold white][1] :right_arrow:  Print my [underline]network interfaces[/underline]\n\n[2] :right_arrow:  Print [underline]process and their ports[/underline]\n\n[3] :right_arrow:  Print my [underline]public IP[/underline]\n\n[4] :right_arrow:  Scan my [underline]local network[/underline][/bold white]\n\n[5] :right_arrow: Ping one or more addresses\n\n\t[bold green1]'main' :right_arrow:  main panel\n\t'net' :right_arrow:  this panel\n\t'bye' :right_arrow:  leave[/bold green1]", title = "[bold green1]Network magic[/bold green1]", padding = 1, style = "pale_turquoise1", expand = False)))
+            interface.add((Panel("[bold white][1] :right_arrow:  Print my [underline]network interfaces[/underline]\n\n[2] :right_arrow:  Print [underline]process and their ports[/underline]\n\n[3] :right_arrow:  Print my [underline]public IP[/underline]\n\n[4] :right_arrow:  Scan my [underline]local network[/underline][/bold white]\n\n[bold white][5] :right_arrow: Ping one or more addresses[/bold white]\n\n[bold white][6] :right_arrow: Find the [underline]fastest dns[/underline] for you[/bold white]\n\n\t[bold green1]'main' :right_arrow:  main panel\n\t'net' :right_arrow:  this panel\n\t'bye' :right_arrow:  leave[/bold green1]", title = "[bold green1]Network magic[/bold green1]", padding = 1, style = "pale_turquoise1", expand = False)))
             console.print(Align.center(interface))
             net_selector()
         
@@ -751,6 +841,9 @@ while keep_alive == True:
                 net_selector()
             elif int(net_choice) == 5:
                 average_ping()
+                net_selector()
+            elif int(net_choice) == 6:
+                dns_list()
                 net_selector()
             return net_choice
 
@@ -785,24 +878,33 @@ while keep_alive == True:
             choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
             choice = input_control(choice)
             if int(choice) == 1:
-                cpu_ram()
+                try:
+                    cpu_ram()
+                except IndexError:
+                    console.print(Align.center("An error occured, can't retrieve proper information"))
                 selector()
             elif int(choice) == 2:
-                disks()
+                try:
+                    disks()
+                except IndexError:
+                    console.print(Align.center("An error occured, can't retrieve proper information"))
                 selector()
             elif int(choice) == 3:
-                controllers()
+                try:
+                    controllers()
+                except IndexError:
+                    console.print(Align.center("An error occured, can't retrieve proper information"))
                 selector()
             elif int(choice) == 4:
                 net_menu()
             elif int(choice) == 5:
-                console.print("un bel readme fatto da me")
+                console.print(Align.center(Panel(Text("To run properly, this script only needs 3 packages: python3 (which should be already installed in a recent Linux distro), pip and arping.\n\n All of them are present in the Ubuntu repositories.\n After installing pip (useful to manage python modules), this script just needs pyfiglet(a nice logo) and rich(for managing the content in the terminal).\n\n All the I\O is read through standard commands of all Linux distributions, this guarantee a wide range of compatibility", justify= "center"), padding=(1,1), border_style= "cyan")))
                 selector()
             elif choice == "main":
                 main_menu()
                 selector()
             else:
-                console.print("[bold green1]We still don't have this many options, please try again...[/bold green1]")
+                console.print(Text("[bold green1]That's an impressive number, but unfortunately I don't have this many options, please try again...[/bold green1]"), justify="center")
                 selector()
             return choice
 
@@ -811,8 +913,6 @@ while keep_alive == True:
         main_menu()
         selector()
 
-        # CALCOLO PING MEDIO -> ping
-        # JITTER -> ping
         # LISTA DI SERVER DNS -> da fare: Cloudflare, Google public DNS, OpenDNS
         # DNS UTILIZZATO -> systemd-resolve
 
