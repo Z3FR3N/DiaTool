@@ -613,7 +613,7 @@ while keep_alive == True:
                     net_menu()
                     net_selector()
 
-        def average_ping(): #pinging 15 addresses and returning stats
+        def average_ping(): #pinging 10 addresses and returning stats
             address_list = list(str())
             console.print(Align.center("\nPlease type an [bold]address[/bold] or a [bold]domanin name[/bold]\n"))
             choice = console.input("                                  [bold #ffa726]>>[/bold #ffa726] ")
@@ -706,7 +706,7 @@ while keep_alive == True:
                 console.print(Align.center(multiple_pings_table))
 
         def dns_list():
-            console.print(Text("\n....This may take a while....", justify="center"))
+            console.print(Text("\n....This may take a while....\n", justify="center"))
             dns_name = ['Google', 'Quad9', 'OpenDNS', 'Cloudflare', 'CleanBrowsing', 'Alternate DNS', 'Adguard', 'DNS.Watch', 'Comodo Secure DNS', 'Centurylink (Level3)', 'SafeSDN', 'OpenNIC', 'Dyn', 'FreeDNS', 'UncensoredDNS', 'Neustar', 'ControlD']
             primary_add = ['8.8.8.8','9.9.9.9', '208.67.222.222', '1.1.1.1', '185.228.168.9', '76.76.19.19', '94.140.14.14', '84.200.69.80', '8.26.56.26', '205.171.3.65', '195.46.39.39', '159.89.120.99', '216.146.35.35', '45.33.97.5', '91.239.100.100', '64.6.64.6', '76.76.2.0']
             secondary_add = ['8.8.4.4', '149.112.112.112', '208.67.220.220', '1.0.0.1', '185.228.169.9', '76.223.122.150', '94.140.15.15', '84.200.70.40', '8.20.247.20', '205.171.2.65', '195.46.39.40', '134.195.4.2', '216.146.36.36', '37.235.1.177', '89.233.43.71', '64.6.65.6','76.76.10.0']
@@ -764,29 +764,43 @@ while keep_alive == True:
             def sorting_results(result):
                 return float(result["time"])
             primary_result.sort(key = sorting_results)
-            secondary_result.sort(key = sorting_results)
-            primary_dns_table = Table(title= "Primary DNS")
+            secondary_result.sort(key = sorting_results) 
+            primary_dns_table = Table(title= "Primary DNS", show_lines=True, border_style="cyan", title_style="bold green1")
             primary_dns_table.add_column("")
-            primary_dns_table.add_column("Name")
-            primary_dns_table.add_column("Address")
-            primary_dns_table.add_column("Time")
+            primary_dns_table.add_column("[bold #ffa726]Name[/bold #ffa726]")
+            primary_dns_table.add_column("[bold #ffa726]Address[/bold #ffa726]")
+            primary_dns_table.add_column("[bold #ffa726]Time[/bold #ffa726]")
             for i in range(len(primary_result)):
+                c = i + 1
                 x = dict(primary_result[i])
-                primary_dns_table.add_row(str(i+1), x.get("name"), x.get("primary address"), x.get("time"))
+                primary_dns_table.add_row(str(c), x.get("name"), x.get("primary address"), x.get("time") + " ms")
             if len(primary_no_response) >= 1:
                 for j in range(len(primary_no_response)):
+                    c1 = c + j + 1
                     x = dict(primary_no_response[j])
-                    primary_dns_table.add_row(str(j+1), x.get("name"), x.get("primary address"), x.get("time"))
-            secondary_dns_table = Table(title= "Secondary DNS")
+                    primary_dns_table.add_row(str(c1), x.get("name"), x.get("primary address"), x.get("time"))
+            secondary_dns_table = Table(title= "Secondary DNS", show_lines=True, border_style="cyan", title_style="bold green1")
             secondary_dns_table.add_column("")
-            secondary_dns_table.add_column("Name")
-            secondary_dns_table.add_column("Address")
-            secondary_dns_table.add_column("Time")
+            secondary_dns_table.add_column("[bold #ffa726]Name[/bold #ffa726]")
+            secondary_dns_table.add_column("[bold #ffa726]Address[/bold #ffa726]")
+            secondary_dns_table.add_column("[bold #ffa726]Time[/bold #ffa726]")
             for i in range(len(secondary_result)):
                 x = dict(secondary_result[i])
-                secondary_dns_table.add_row(str(i+1), x.get("name"), x.get("primary address"), x.get("time"))
-            console.print(primary_dns_table)
-            console.print(secondary_dns_table)
+                secondary_dns_table.add_row(str(i+1), x.get("name"), x.get("primary address"), x.get("time") + " ms")
+            if len(secondary_no_response) >= 1:
+                for j in range(len(secondary_no_response)):
+                    c1 = c + j + 1
+                    x = dict(secondary_no_response[j])
+                    secondary_dns_table.add_row(str(c1), x.get("name"), x.get("primary address"), x.get("time"))
+            console.print(Align.center(primary_dns_table))
+            console.print("\n")
+            console.print(Align.center(secondary_dns_table))
+            fastest_primary = primary_result[1]
+            fastest_secondary = secondary_result[1]
+            console.print(Align.center(Panel("Do you want yo set " + "[bold white]" + (fastest_primary["name"] + "[/bold white]" + " as primary DNS?"), border_style="cyan")))
+            
+            # systemd-resolve --status -> stampare a linea di comando
+            # sudo systemd-resolve -i enp8s0 --set-dns=8.8.8.8
 
         ## INTERFACE ##
 
@@ -820,7 +834,7 @@ while keep_alive == True:
      
         def net_menu():
             interface = Tree("[bold #ffa726]:penguin: " + hostname + " @ " + username + "[/bold #ffa726]", guide_style="#ffa726")
-            interface.add((Panel("[bold white][1] :right_arrow:  Print my [underline]network interfaces[/underline]\n\n[2] :right_arrow:  Print [underline]process and their ports[/underline]\n\n[3] :right_arrow:  Print my [underline]public IP[/underline]\n\n[4] :right_arrow:  Scan my [underline]local network[/underline][/bold white]\n\n[bold white][5] :right_arrow: Ping one or more addresses[/bold white]\n\n[bold white][6] :right_arrow: Find the [underline]fastest dns[/underline] for you[/bold white]\n\n\t[bold green1]'main' :right_arrow:  main panel\n\t'net' :right_arrow:  this panel\n\t'bye' :right_arrow:  leave[/bold green1]", title = "[bold green1]Network magic[/bold green1]", padding = 1, style = "pale_turquoise1", expand = False)))
+            interface.add((Panel("[bold white][1] :right_arrow:  Print my [underline]network interfaces[/underline]\n\n[2] :right_arrow:  Print [underline]process and their ports[/underline]\n\n[3] :right_arrow:  Print my [underline]public IP[/underline]\n\n[4] :right_arrow:  Scan my [underline]local network[/underline][/bold white]\n\n[bold white][5] :right_arrow:  Ping one or more addresses[/bold white]\n\n[bold white][6] :right_arrow:  Find the [underline]fastest dns[/underline] for you[/bold white]\n\n\t[bold green1]'main' :right_arrow:  main panel\n\t'net' :right_arrow:  this panel\n\t'bye' :right_arrow:  leave[/bold green1]", title = "[bold green1]Network magic[/bold green1]", padding = 1, style = "pale_turquoise1", expand = False)))
             console.print(Align.center(interface))
             net_selector()
         
@@ -913,7 +927,6 @@ while keep_alive == True:
         main_menu()
         selector()
 
-        # LISTA DI SERVER DNS -> da fare: Cloudflare, Google public DNS, OpenDNS
         # DNS UTILIZZATO -> systemd-resolve
 
     if sys.platform.startswith('win'):
@@ -923,7 +936,7 @@ while keep_alive == True:
             task1 = progress.add_task("[red]Playing league of legends...", total=1000)
             task2 = progress.add_task("[green]Cooking a panda...", total=1000)
             task3 = progress.add_task("[orchid]Eating pasta...", total=1000)
-            task4 = progress.add_task("[cyan1]Sleeping(like, a lot)...", total=1000)
+            task4 = progress.add_tassk("[cyan1]Sleeping(like, a lot)...", total=1000)
             task5 = progress.add_task("[magenta]Eating pizza(frozen? Cmon dude)...", total=1000)
             task6 = progress.add_task("[dark_orange3]Playing sea of thieves...", total=1000)
             task7 = progress.add_task("[yellow]Studying (oh, cmon really?)...", total=1000)
