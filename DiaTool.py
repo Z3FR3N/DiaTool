@@ -1,7 +1,3 @@
-# https://docs.python.org/3/library/sys.html#sys.platform
-# https://docs.python.org/3/library/subprocess.html?highlight=subprocess#module-subprocess
-# https://rich.readthedocs.io/en/latest/index.html
-#
 # MIT License (MIT)
 #
 # Copyright © 2022 Luca Martinangeli
@@ -25,14 +21,13 @@
 # SOFTWARE.
 #
 
-from itertools import count
+
 import time
-import sys 
+import sys
 import subprocess
 import concurrent.futures
 from rich.columns import Columns
 from rich.align import Align
-from rich.padding import Padding
 from rich.tree import Tree
 from rich.text import Text
 from rich.console import Console
@@ -135,9 +130,9 @@ while keep_alive == True:
             n_core = int(n_core)
             n_core = str(n_core)
             table = Table(border_style="pale_turquoise1", expand=True, box=box.HEAVY_HEAD)
-            table.add_column(Text('CPU info', style='bold green1', justify='center'), justify="right",   style="bold yellow")
+            table.add_column(Text('CPU info', style='bold green1', justify='center'), justify="right",   style="bold #ffa726")
             table.add_column(Text('CPU data', style='bold green1', justify='center'), justify="left"),
-            table.add_column(Text('RAM info', style='bold green1', justify='center'), justify="right", style= "bold yellow")
+            table.add_column(Text('RAM info', style='bold green1', justify='center'), justify="right", style= "bold #ffa726")
             table.add_column(Text('RAM data', style='bold green1', justify='center'), justify="left"),
             table.add_row("Architecture:", cpu_final[1])
             table.add_row("CPU(s):", cpu_final[3])
@@ -203,7 +198,7 @@ while keep_alive == True:
             table2.add_column("[bold green1]Legend[/bold green1]", justify="center")
             table2.add_column(Text('Disks Tree', style='bold green1', justify='center'))
             table2.add_row()
-            table2.add_row("[bold yellow]MAJ:MIN[/bold yellow]\ndev type: nr dev\n\n[bold yellow]RM[/bold yellow]\nremovable device\n\n[bold yellow]RO[/bold yellow]\nread only device\n\n[bold yellow]MOUNTPOINT[/bold yellow]\nmount address", "[bold yellow]NAME     MAJ:MIN  RM   SIZE RO TYPE MOUNTPOINT[/bold yellow]\n\n" + disks_tree)
+            table2.add_row("[bold #ffa726]MAJ:MIN[/bold #ffa726]\ndev type: nr dev\n\n[bold #ffa726]RM[/bold #ffa726]\nremovable device\n\n[bold #ffa726]RO[/bold #ffa726]\nread only device\n\n[bold #ffa726]MOUNTPOINT[/bold #ffa726]\nmount address", "[bold #ffa726]NAME     MAJ:MIN  RM   SIZE RO TYPE MOUNTPOINT[/bold #ffa726]\n\n" + disks_tree)
             table2.add_row()
             console.print(table2)
 
@@ -231,7 +226,7 @@ while keep_alive == True:
             controllers = controllers.split('\n\n')
             for i in range(len(controllers)):
                 table3.add_row(controllers[i])
-            console.print(table3)
+            console.print(Align.center(table3))
 
         ## NET MENU ##
 
@@ -386,21 +381,21 @@ while keep_alive == True:
             if len(network[2])>=1 and len(ethernet_list)>=1:
                 ethernet_table = Table(border_style="pale_turquoise1", width=40,  expand = True, box=box.HEAVY_HEAD)
                 for i in range(0, len(network[2]), 2):
-                    ethernet_table.add_column(Text(network[2][i], justify="center", style="bold #ffa726"))
+                    ethernet_table.add_column(Text(network[2][i], justify="center", style="bold yellow1"))
                 for i in range(len(ethernet_list)):
                     ethernet_table.add_row(ethernet_list[i])
                 tables.append(ethernet_table)
             if len(network[0])>=1 and len(wireless_list)>=1:
                 wireless_table = Table(border_style="pale_turquoise1",width=40, expand = True, box=box.HEAVY_HEAD) 
                 for i in range(0, len(network[0]), 2):
-                    wireless_table.add_column(Text(network[0][i], justify="center", style="bold #ffa726"))
+                    wireless_table.add_column(Text(network[0][i], justify="center", style="bold yellow1"))
                 for i in range(len(wireless_list)):
                     wireless_table.add_row(wireless_list[i])
                 tables.append(wireless_table)
             if len(network[1])>=1 and len(localhost)>=1:
                 localhost_table = Table(border_style="pale_turquoise1", width=40, expand = True, box=box.HEAVY_HEAD)
                 for i in range(0, len(network[1]), 2):
-                    localhost_table.add_column(Text(network[1][i], justify="center", style="bold #ffa726"))
+                    localhost_table.add_column(Text(network[1][i], justify="center", style="bold yellow1"))
                 for i in range(len(localhost)):
                     localhost_table.add_row(localhost[i])
             if len(tables) > 1:
@@ -411,7 +406,7 @@ while keep_alive == True:
 
         def net_process_ports(): #using lsof to detect an open network stream
             console.print(Panel(Align.center("Running as root will display more informations, do you want run as root?\n\n\t\t\t\t   [bold]YES[/bold]/no"), padding=(1,1), expand = False, border_style="cyan"))
-            choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
+            choice = console.input("                                      [bold yellow1]>>[/bold yellow1] ")
             pr_list = list(str())
             if choice.lower() == 'yes' or choice.lower() == '':
                 pr_list = cmd_to_list(['sudo', 'lsof', '-i', '-P', '-n'], '\n')
@@ -445,7 +440,7 @@ while keep_alive == True:
                     i =+ 1
             pr_tables = list()
             for i in range(len(pr_name)):
-                pr_table = Table(title=Text(pr_name[i], style="bold #ffa726"), border_style="pale_turquoise1", expand = True, box=box.HEAVY_HEAD)
+                pr_table = Table(title=Text(pr_name[i], style="bold yellow1"), border_style="pale_turquoise1", expand = True, box=box.HEAVY_HEAD)
                 pr_table.add_column("[bold yellow]PID[/bold yellow]", justify="center")
                 pr_table.add_column("[bold yellow]USER[/bold yellow]", justify="center")
                 pr_table.add_column("[bold yellow]FD[/bold yellow]", justify="center")
@@ -470,7 +465,7 @@ while keep_alive == True:
             control = cmd_to_string(['which', 'arping'])[0]
             while control != '/':
                 console.print(Align.center("it seems you don't have arping installed, do you want to install it?\n[bold]YES/no[/bold]\n\nNote: will be used the apt package manager, please if you have another package manager type no and install it manually."))
-                yn_choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
+                yn_choice = console.input("                                      [bold yellow1]>>[/bold yellow1] ")
                 if yn_choice.lower() == "yes" or yn_choice == "":
                     subprocess.run(['sudo', 'apt-get', 'install', 'arping'])
                     break
@@ -539,10 +534,10 @@ while keep_alive == True:
             else:
                 ping_table = Table(title="Ping Scan", show_lines=True, border_style="cyan", title_style="bold green1")
                 ping_table.add_column("")
-                ping_table.add_column("[bold #ffa726]IP address[/bold #ffa726]", justify="center", style="white")
-                ping_table.add_column("[bold #ffa726]ttl[/bold #ffa726]", justify="center", style="white")
-                ping_table.add_column("[bold #ffa726]Device type[/bold #ffa726]", justify="center", style="white")
-                ping_table.add_column("[bold #ffa726]Time[/bold #ffa726]", justify="center", style="white")
+                ping_table.add_column("[bold yellow1]IP address[/bold yellow1]", justify="center", style="white")
+                ping_table.add_column("[bold yellow1]ttl[/bold yellow1]", justify="center", style="white")
+                ping_table.add_column("[bold yellow1]Device type[/bold yellow1]", justify="center", style="white")
+                ping_table.add_column("[bold yellow1]Time[/bold yellow1]", justify="center", style="white")
                 for i in range(len(replied)):
                     nr = str(i + 1)
                     if replied[i].find(" -> This machine") != -1:
@@ -562,7 +557,7 @@ while keep_alive == True:
                         ping_table.add_row(nr, ip_addr, ttl, device_type, time)
                 console.print(Align.center(ping_table))
                 console.print(Panel(Align.center("Windows machines (for security reasons) may not reply to a ping request, but they might reply from an ARP request in the subnet " + subnet + "[] proceed?\n\n\t\t\t\t[bold]YES/no[/bold]\n\nThis requires a special package in the Ubuntu repositories called 'Arping' (requires root), if the tables generated are the same then probably there aren't any Windows device in the subnet"), padding= (1,1), expand = False, border_style="cyan"))
-                yn_choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
+                yn_choice = console.input("                                      [bold yellow1]>>[/bold yellow1] ")
                 if yn_choice.lower() == "yes" or yn_choice == "":
                     console.print(Align.center("\nThanks!\n"))
                     arping_installed()
@@ -592,9 +587,9 @@ while keep_alive == True:
                             arping_time.append(arp_replied[i][b:e])
                     arping_table = Table(title="Arping Scan", show_lines=True, border_style="cyan", title_style="bold green1")
                     arping_table.add_column("")
-                    arping_table.add_column("[bold #ffa726]IP address[/bold #ffa726]", justify="center", style="white")
-                    arping_table.add_column("[bold #ffa726]MAC Address[/bold #ffa726]", justify="center", style="white")
-                    arping_table.add_column("[bold #ffa726]Time[/bold #ffa726]", justify="center", style="white")
+                    arping_table.add_column("[bold yellow1]IP address[/bold yellow1]", justify="center", style="white")
+                    arping_table.add_column("[bold yellow1]MAC Address[/bold yellow1]", justify="center", style="white")
+                    arping_table.add_column("[bold yellow1]Time[/bold yellow1]", justify="center", style="white")
                     for i in range(len(arping_ip)):
                         arping_table.add_row(str(int(i)+1), str(arping_ip[i]), str(arping_mac[i]), str(arping_time[i]))
                     console.print(Align.center(arping_table))
@@ -616,7 +611,7 @@ while keep_alive == True:
         def average_ping(): #pinging 10 addresses and returning stats
             address_list = list(str())
             console.print(Align.center("\nPlease type an [bold]address[/bold] or a [bold]domanin name[/bold]\n"))
-            choice = console.input("                                  [bold #ffa726]>>[/bold #ffa726] ")
+            choice = console.input("                                  [bold yellow1]>>[/bold yellow1] ")
             if choice.lower() == "net":
                 net_menu()
                 address_list.clear()
@@ -695,12 +690,12 @@ while keep_alive == True:
                     e3 = ping_completed[i].find("\n", b3)
                     jitter.append(ping_completed[i][b3+1:e3])
                 multiple_pings_table = Table(title="Results", show_lines=True, border_style="cyan", title_style="bold green1")
-                multiple_pings_table.add_column("[bold #ffa726]Address[/bold #ffa726]")
-                multiple_pings_table.add_column("[bold #ffa726]Sent[/bold #ffa726]", justify="center")
-                multiple_pings_table.add_column("[bold #ffa726]Rec.[/bold #ffa726]", justify="center")
-                multiple_pings_table.add_column("[bold #ffa726]Loss[/bold #ffa726]", justify="center")
-                multiple_pings_table.add_column("[bold #ffa726]rtt avg[/bold #ffa726]", justify="center")#round trip time average - rtt avg
-                multiple_pings_table.add_column("[bold #ffa726]Jitter avg[/bold #ffa726]")#mdev
+                multiple_pings_table.add_column("[bold yellow1]Address[/bold yellow1]")
+                multiple_pings_table.add_column("[bold yellow1]Sent[/bold yellow1]", justify="center")
+                multiple_pings_table.add_column("[bold yellow1]Rec.[/bold yellow1]", justify="center")
+                multiple_pings_table.add_column("[bold yellow1]Loss[/bold yellow1]", justify="center")
+                multiple_pings_table.add_column("[bold yellow1]rtt avg[/bold yellow1]", justify="center")#round trip time average - rtt avg
+                multiple_pings_table.add_column("[bold yellow1]Jitter avg[/bold yellow1]")#mdev
                 for i in range(len(address_list)):
                     multiple_pings_table.add_row(address_list[i], sent[i], received[i], loss[i], time[i], jitter[i])
                 console.print(Align.center(multiple_pings_table))
@@ -767,9 +762,9 @@ while keep_alive == True:
             secondary_result.sort(key = sorting_results) 
             primary_dns_table = Table(title= "Primary DNS", show_lines=True, border_style="cyan", title_style="bold green1")
             primary_dns_table.add_column("")
-            primary_dns_table.add_column("[bold #ffa726]Name[/bold #ffa726]")
-            primary_dns_table.add_column("[bold #ffa726]Address[/bold #ffa726]")
-            primary_dns_table.add_column("[bold #ffa726]Time[/bold #ffa726]")
+            primary_dns_table.add_column("[bold yellow1]Name[/bold yellow1]")
+            primary_dns_table.add_column("[bold yellow1]Address[/bold yellow1]")
+            primary_dns_table.add_column("[bold yellow1]Time[/bold yellow1]")
             for i in range(len(primary_result)):
                 c = i + 1
                 x = dict(primary_result[i])
@@ -781,9 +776,9 @@ while keep_alive == True:
                     primary_dns_table.add_row(str(c1), x.get("name"), x.get("primary address"), x.get("time"))
             secondary_dns_table = Table(title= "Secondary DNS", show_lines=True, border_style="cyan", title_style="bold green1")
             secondary_dns_table.add_column("")
-            secondary_dns_table.add_column("[bold #ffa726]Name[/bold #ffa726]")
-            secondary_dns_table.add_column("[bold #ffa726]Address[/bold #ffa726]")
-            secondary_dns_table.add_column("[bold #ffa726]Time[/bold #ffa726]")
+            secondary_dns_table.add_column("[bold yellow1]Name[/bold yellow1]")
+            secondary_dns_table.add_column("[bold yellow1]Address[/bold yellow1]")
+            secondary_dns_table.add_column("[bold yellow1]Time[/bold yellow1]")
             for i in range(len(secondary_result)):
                 x = dict(secondary_result[i])
                 secondary_dns_table.add_row(str(i+1), x.get("name"), x.get("primary address"), x.get("time") + " ms")
@@ -795,18 +790,49 @@ while keep_alive == True:
             console.print(Align.center(primary_dns_table))
             console.print("\n")
             console.print(Align.center(secondary_dns_table))
-            fastest_primary = primary_result[1]
-            fastest_secondary = secondary_result[1]
-            console.print(Align.center(Panel("Do you want yo set " + "[bold white]" + (fastest_primary["name"] + "[/bold white]" + " as primary DNS?"), border_style="cyan")))
+            fastest_primary = primary_result[0]
+            status_systemd = cmd_to_list(['systemd-resolve', '--status'], '\n\n')
+            status_DNS = {
+                "interface" : "Not found",
+                "address" : "Not found",
+                "domain" : "Not found"
+            }
+            for i in range(len(status_systemd)):
+                if status_systemd[i].find("Current DNS Server:") != -1:
+                    b = status_systemd[i].find("(") + 1
+                    e = status_systemd[i].find(")\n", b)
+                    status_DNS.update({"interface" : status_systemd[i][b:e]})
+                    b = status_systemd[i].find("Server: ", e) + len("Server: ")
+                    e = status_systemd[i].find("\n", b)
+                    status_DNS.update({"address" : status_systemd[i][b:e]})
+                    b = status_systemd[i].find("DNS Domain: ", e) + len("DNS Domain: ")
+                    status_DNS.update({"domain" : status_systemd[i][b:]})
+            console.print(Align.center(Panel("Do you want to set " + "[bold white]" + (fastest_primary["name"] + "[/bold white]" + " as primary DNS [bold white]" + status_DNS["interface"] + "[/bold white]? [bold]YES[/bold]/no"), border_style="cyan")))
+            while True:
+                yn_choice = console.input("                                      [bold yellow1]>>[/bold yellow1] ")
+                if yn_choice.lower() == "yes" or yn_choice.lower() == "":
+                    x = dict(fastest_primary)
+                    interface = "--interface=" + status_DNS.get("interface")
+                    address = "--set-dns=" + x.get("primary address")
+                    domain = "--set-domain=" + x.get("name")
+                    subprocess.run(["systemd-resolve", interface, address, domain])
+                    console.print(Text("\nSuccess!\n", justify="center", style="bold"))
+                    console.print(Align.center(Panel("Please be aware that these changes aren't permanent!", border_style="cyan")))
+                    break
+                elif yn_choice.lower() == "no":
+                    console.print(Text("\nOk!\n", justify="center"))
+                    break
+                else:
+                    console.print(Text("\nPlease choose 'yes' or 'no'\n", justify="center", style="bold red"))
             
-            # systemd-resolve --status -> stampare a linea di comando
-            # sudo systemd-resolve -i enp8s0 --set-dns=8.8.8.8
+            #  -> stampare a linea di comando
+            # sudo systemd-resolve -i INTERFACE --set-dns=ADDRESS --set-domain NAME
 
         ## INTERFACE ##
 
         def yn_selector():
             global local_ip
-            yn_choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
+            yn_choice = console.input("                                      [bold yellow1]>>[/bold yellow1] ")
             if yn_choice.lower() == "yes" or yn_choice == "":
                 console.print(Align.center("\nThanks!\n"))
             elif yn_choice.lower() == "no":
@@ -829,17 +855,17 @@ while keep_alive == True:
 
         def main_menu():
             interface = Tree("[bold #ffa726]:penguin: " + hostname + " @ " + username + "[/bold #ffa726]", guide_style="#ffa726")
-            interface.add(Panel("[bold white][1] :right_arrow:  Show me [underline]CPU and RAM[/underline] details!\n\n[2] :right_arrow:  Show me [underline]disks[/underline] details!\n\n[3] :right_arrow:  Show me some [underline]controllers[/underline]!\n\n[4] :right_arrow:  Show me some [underline]network[/underline] magic!\n\n[5] :right_arrow:  Show me the [underline]Readme[/underline][/bold white]\n\n\t[bold green1]'main' :right_arrow:  this panel\n\t'bye' :right_arrow:  leave[/bold green1]", padding=1, title="[bold green1]Type a number:[/bold green1]", style="pale_turquoise1", expand=False))
+            interface.add(Panel("[bold white][1] :right_arrow:  Show me [underline]CPU and RAM[/underline] details!\n\n[2] :right_arrow:  Show me [underline]disks[/underline] details!\n\n[3] :right_arrow:  Show me some [underline]controllers[/underline]!\n\n[4] :right_arrow:  Show me some [underline]network[/underline] magic!\n\n[5] :right_arrow:  Show me the [underline]Readme[/underline][/bold white]\n\n[bold white][6] :right_arrow:  Clear the screen[/bold white] \n\n\t[bold green1]'main' :right_arrow:  this panel\n\t'bye' :right_arrow:  leave[/bold green1]", padding=1, title="[bold green1]Type a number:[/bold green1]", style="pale_turquoise1", expand=False))
             console.print(Align.center(interface))
      
         def net_menu():
-            interface = Tree("[bold #ffa726]:penguin: " + hostname + " @ " + username + "[/bold #ffa726]", guide_style="#ffa726")
-            interface.add((Panel("[bold white][1] :right_arrow:  Print my [underline]network interfaces[/underline]\n\n[2] :right_arrow:  Print [underline]process and their ports[/underline]\n\n[3] :right_arrow:  Print my [underline]public IP[/underline]\n\n[4] :right_arrow:  Scan my [underline]local network[/underline][/bold white]\n\n[bold white][5] :right_arrow:  Ping one or more addresses[/bold white]\n\n[bold white][6] :right_arrow:  Find the [underline]fastest dns[/underline] for you[/bold white]\n\n\t[bold green1]'main' :right_arrow:  main panel\n\t'net' :right_arrow:  this panel\n\t'bye' :right_arrow:  leave[/bold green1]", title = "[bold green1]Network magic[/bold green1]", padding = 1, style = "pale_turquoise1", expand = False)))
+            interface = Tree("[bold yellow1]:penguin: " + hostname + " @ " + username + "[/bold yellow1]", guide_style="yellow")
+            interface.add((Panel("[bold white][1] :right_arrow:  Print my [underline]network interfaces[/underline]\n\n[2] :right_arrow:  Print [underline]process and their ports[/underline]\n\n[3] :right_arrow:  Print my [underline]public IP[/underline]\n\n[4] :right_arrow:  Scan my [underline]local network[/underline][/bold white]\n\n[bold white][5] :right_arrow:  [underline]Ping[/underline] one or more addresses[/bold white]\n\n[bold white][6] :right_arrow:  Find the [underline]fastest dns[/underline] for you[/bold white]\n\n\t[bold green1]'main' :right_arrow:  main panel\n\t'net' :right_arrow:  this panel\n\t'bye' :right_arrow:  leave[/bold green1]", title = "[bold green1]Network magic[/bold green1]", padding = 1, style = "pale_turquoise1", expand = False)))
             console.print(Align.center(interface))
             net_selector()
         
         def net_selector():
-            net_choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
+            net_choice = console.input("                                      [bold yellow1]>>[/bold yellow1] ")
             net_choice = input_control(net_choice)
             if int(net_choice) == 1:
                 network_inter()
@@ -874,7 +900,7 @@ while keep_alive == True:
             control = choice.isnumeric()
             while control == False:
                 console.print(Align.center("\n[bold red]Please, try again....[/bold red]\n"))
-                choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
+                choice = console.input("                                      [bold yellow1]>>[/bold yellow1] ")
                 if choice == "bye":
                     exit()
                 elif choice == "main":
@@ -913,6 +939,9 @@ while keep_alive == True:
                 net_menu()
             elif int(choice) == 5:
                 console.print(Align.center(Panel(Text("To run properly, this script only needs 3 packages: python3 (which should be already installed in a recent Linux distro), pip and arping.\n\n All of them are present in the Ubuntu repositories.\n After installing pip (useful to manage python modules), this script just needs pyfiglet(a nice logo) and rich(for managing the content in the terminal).\n\n All the I\O is read through standard commands of all Linux distributions, this guarantee a wide range of compatibility", justify= "center"), padding=(1,1), border_style= "cyan")))
+                selector()
+            elif int(choice) == 6:
+                console.clear()
                 selector()
             elif choice == "main":
                 main_menu()
