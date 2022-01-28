@@ -4,12 +4,12 @@
 
 # DiaTool
 
-The aim of this terminal script is to visualize in a compact way all the information regarding the machine in which it's running, to "diagnose" (hence, the name) the hardware. If you have git installed in your system, you can obtain this script simply running:
+The aim of this script is to display in a compact way all the information regarding the machine, it's meant to be a tool to "diagnose" (hence, the name) the hardware and the network. If you have git installed in your system, you can obtain this script simply running:
 
 ```bash
 git clone  https://github.com/Z3FR3N/DiaTool 
 ```
-To run the script simply type from the terminal:
+To run the script simply type from the terminal (from the folder):
 
 ```bash
 python3 DiaTool.py
@@ -27,9 +27,6 @@ If not installed, Python3:
 ```bash
 sudo apt-get install python3
 ```
-Running from zsh.
-
-Feel free to go [on the python download page](https://www.python.org/downloads/) and [rich documentation](https://rich.readthedocs.io/en/stable/introduction.html#installation) for more informations.
 
 Written in Python (v3.9), makes use of the following **modules**:
 
@@ -38,19 +35,21 @@ Written in Python (v3.9), makes use of the following **modules**:
 - sys
 - rich (framework to display all the infos in a nice way)
 
-On debian based distros:
+Almost all are standard python modules, the only one needed is rich:
 
 ```bash
 sudo pip install rich
 ```
 
+Feel free to go on the [python download page](https://www.python.org/downloads/) and [rich documentation](https://rich.readthedocs.io/en/stable/introduction.html#installation) for more informations.
+
 # Features
 
 This script is capable to display:
 
-- Machine details like CPU(s), RAM, disks usage and volume mounting point
-- Print network interfaces, process which are using the network, the public IP of the machine
-- Make an ICMP/ARP scan of the subnet
-- Ping one or more IP addresses
-- Changing DNS of the current session (using **systemd-resolve**)
+- CPU(s), RAM, disks usage and volume mounting point.
+- Print network interfaces, process which are using the network, public IP
+- Make an ICMP/ARP scan of the subnet.
+- Ping one or more (up to 10) IP addresses.
+- Changing DNS of the current session (using **systemd-resolve**) with a faster one.
 
