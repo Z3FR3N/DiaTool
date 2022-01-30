@@ -938,7 +938,7 @@ while keep_alive == True:
             elif int(choice) == 4:
                 net_menu()
             elif int(choice) == 5:
-                console.print(Align.center(Panel(Text("To run properly, this script only needs 3 packages: python3 (which should be already installed in a recent Linux distro), pip and arping.\n\n All of them are present in the Ubuntu repositories.\n After installing pip (useful to manage python modules), this script just needs pyfiglet(a nice logo) and rich(for managing the content in the terminal).\n\n All the I\O is read through standard commands of all Linux distributions, this guarantee a wide range of compatibility", justify= "center"), padding=(1,1), border_style= "cyan")))
+                console.print(Align.center(Panel(Text("To run properly, this script only needs 3 packages: python3 (which should be already installed in a recent Linux distro), pip and arping.\n\n All of them are present in the Ubuntu repositories.\n After installing pip (useful to manage python modules), it needs to be used to install rich.\n\n All the I\O is read through standard commands of all Linux distributions, this guarantee a wide range of compatibility\n\nYou can find more information in the Github page of the project:\n\nhttps://github.com/Z3FR3N/DiaTool", justify= "center"), padding=(1,1), border_style= "cyan")))
                 selector()
             elif int(choice) == 6:
                 console.clear()
