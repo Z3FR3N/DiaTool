@@ -26,6 +26,7 @@ import time
 import sys
 import subprocess
 import concurrent.futures
+from unittest import skip
 from rich.columns import Columns
 from rich.align import Align
 from rich.tree import Tree
@@ -431,6 +432,9 @@ while keep_alive == True:
                 if pr_list2 == '':
                     pr_list2.pop(i)
             pr_list2.pop(0)
+            for x in range(len(pr_list2)):
+                if len(pr_list2[x]) < 10:
+                    pr_list2[x].append("Uknown")
             pr_name = []
             for i in range(len(pr_list2)):
                 n = pr_name.count(pr_list2[i][0])
@@ -442,13 +446,13 @@ while keep_alive == True:
             for i in range(len(pr_name)):
                 pr_table = Table(title=Text(pr_name[i], style="bold yellow1"), border_style="pale_turquoise1", expand = True, box=box.HEAVY_HEAD)
                 pr_table.add_column("[bold yellow]PID[/bold yellow]", justify="center")
-                pr_table.add_column("[bold yellow]USER[/bold yellow]", justify="center")
-                pr_table.add_column("[bold yellow]FD[/bold yellow]", justify="center")
+                # pr_table.add_column("[bold yellow]USER[/bold yellow]", justify="center")
                 pr_table.add_column("[bold yellow]NODE[/bold yellow]", justify="center")
-                pr_table.add_column("[bold yellow]IP IN:PORT -> IP OUT:PORT[/bold yellow]", justify="left")
+                pr_table.add_column("[bold yellow]IP IN:PORT -> IP OUT:PORT[/bold yellow]", justify="left", overflow= "fold")
+                pr_table.add_column("[bold yellow]STATUS[/bold yellow]", justify="center")
                 for n in range(len(pr_list2)):
                     if pr_list2[n][0] == pr_name[i]:
-                        pr_table.add_row(Text(pr_list2[n][1]), Text(pr_list2[n][2]), Text(pr_list2[n][5]), Text(pr_list2[n][7]), Text(pr_list2[n][8]))
+                        pr_table.add_row(Text(pr_list2[n][1]), Text(pr_list2[n][7]), Text(pr_list2[n][8]), Text(pr_list2[n][9]))
                 pr_tables.append(pr_table)
             console.print(Panel(Columns(pr_tables), title="[bold green1]Pocesses and Ports[/bold green1]", padding= (1,0), box=box.HEAVY))
         
