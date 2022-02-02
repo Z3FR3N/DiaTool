@@ -252,18 +252,23 @@ while keep_alive == True:
             ip_a = cmd_to_string(['ip', 'a'])
             net_list = []
             net_list = ip_a.split(': ')
-            gateway = cmd_to_string(['ip', 'route', 'show']).split("dev")[0]
-            gateway_interface = cmd_to_string(['ip', 'route', 'show']).split("dev")[1]
-            gateway_interface = gateway_interface.split("proto")[0].strip()
-            if len(gateway) >= 1:
-                gateway = gateway.split("via ")[1]
-                gateway = gateway.strip()
-            else:
-                gateway = "Unknown"
-            if len(gateway_interface) >= 1:
-                gateway_interface = gateway_interface.strip()
-            else:
-                gateway_interface = "Unknown"
+            ip_route = cmd_to_string(['ip', 'route', 'show']).split("\n")
+            gateway = list(str())
+            gateway_interface = list(str())
+            for i in range(len(ip_route)):
+                if ip_route[i].find("default via ") != -1:
+                    b = ip_route[i].find("default via ") + len("default via ")
+                    e = ip_route[i].find(" dev") 
+                    gateway.append(ip_route[i][b:e])
+                    b = e + len(" dev")
+                    e = ip_route[i].find(" proto")
+                    gateway_interface.append(ip_route[i][b:e])
+                else:
+                    break
+            if len(gateway) == 0:
+                gateway.append("Uknown")
+            if len(gateway_interface) == 0:
+                gateway_interface.append("Uknown")
             wireless_list = []
             ethernet_list = []
             localhost = []
@@ -415,7 +420,8 @@ while keep_alive == True:
             else:
                 tables.append(localhost_table)
             console.print(Columns(tables, padding=(0, 0)))
-            console.print(Align.center("[bold yellow1]Gateway:[/bold yellow1] " + gateway + " [bold yellow1]via[/bold yellow1] " + gateway_interface))
+            for i in range(len(gateway)):
+                console.print(Align.center("[bold yellow1]Gateway "+ str(i+1) + ": [/bold yellow1]" + gateway[i] + " [bold yellow1]via[/bold yellow1] " + gateway_interface[i]))
 
         def net_process_ports(): #using lsof to detect an open network stream
             console.print(Panel(Align.center("Running as root will display more informations, do you want run as root?\n\n\t\t\t\t   [bold]YES[/bold]/no"), padding=(1,1), expand = False, border_style="cyan"))
