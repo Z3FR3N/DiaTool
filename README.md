@@ -15,12 +15,12 @@ To run the script simply type from the terminal (from the folder):
 python3 DiaTool.py
 ```
 
-# The Code
+# Installation
 
-To enable **all** the features, make sure to install the "Arping" package from Ubuntu repositories (it's a fairly small package to make ARP requests). You can use the package manager and the terminal of your choice, I daily drive Pop_OS (Ubuntu based) so for me it's:
+To enable **all** the features, make sure to install the arping package from Ubuntu repositories (it's a fairly small package to make ARP requests). Also the curl it's quite important if not installed. You can use the package manager and the terminal of your choice, I daily drive Pop_OS (Ubuntu based) so for me it's:
 
 ```bash
-sudo apt-get install arping
+sudo apt-get install arping curl
 ```
 If not installed, Python3:
 
