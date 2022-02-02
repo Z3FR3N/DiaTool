@@ -191,7 +191,7 @@ while keep_alive == True:
                 if disk_info_interface[0].find('[') != -1:
                     disk_info_interface.insert(0, 'not found')
                     disk_info_interface.pop(1)
-            disks = (disk_info_model1, disk_info_interface, disk_info_sd1)
+            disks = (disk_info_model1, disk_info_interface, disk_info_sd1) #disk_model and disk_sd still dont produce a clean enough output...discarded 
             disks_tree = ''
             disks_tree = '\n'.join(disks[2])
             table2 = Table(border_style="pale_turquoise1", expand = True, box=box.HEAVY_HEAD)
@@ -209,14 +209,14 @@ while keep_alive == True:
             for i in range(len(other_info_det)):
                 grep_param = other_info_det[i]
                 s = 8 + len(grep_param) + 1
-                other_info_string =grep_to_string(grep_param, 'lspci')
+                other_info_string =grep_to_string(grep_param, 'lspci') # populating the list with ^ those param
                 if other_info_string.find('\n') != -1:
                     other_info_list = other_info_string.split('\n')
                     for i in range(len(other_info_list)):
                         other_info_string1 = (other_info_list[i])
                         other_info_final.append(other_info_string1[s:])
                 else:
-                    other_info_final.append(other_info_string[s:])#usa lo slicing a 9 caratteri + il parametro grep
+                    other_info_final.append(other_info_string[s:]) #slicing to 9 char + grep param
             while("" in other_info_final):
                 other_info_final.remove("")
             controllers = ''
@@ -230,20 +230,20 @@ while keep_alive == True:
 
         ## NET MENU ##
 
-        def subnet_mask4(bit): #calculating the subnet mask
+        def subnet_mask4(bit): #calculating the subnet mask, the manly way
             nr_bit = int(bit)
             mask = ''
             sub_mask4_final = ''
-            for i in range(0,nr_bit):
+            for i in range(0,nr_bit): #populating 1s
                 mask = mask + '1'
                 i += 1
-            for j in range(nr_bit, 32):
+            for j in range(nr_bit, 32): #populating 0s
                 mask = mask + '0'
                 j += 1
             # mask ready
             sub_mask = []
             for i in range(0,len(mask), 8):
-                mask_op = int(mask[i:i+8], 2)
+                mask_op = int(mask[i:i+8], 2) #base 2 conversion, subnet mask served
                 sub_mask.append(str(mask_op))
             sub_mask4_final = ".".join(sub_mask)
             return sub_mask4_final
@@ -252,12 +252,12 @@ while keep_alive == True:
             ip_a = cmd_to_string(['ip', 'a'])
             net_list = []
             net_list = ip_a.split(': ')
-            ip_route = cmd_to_string(['ip', 'route', 'show']).split("\n")
+            ip_route = cmd_to_string(['ip', 'route', 'show']).split("\n") #ip route to find gateways to associate them with the right interface
             gateway = list(str())
             gateway_interface = list(str())
             for i in range(len(ip_route)):
                 if ip_route[i].find("default via ") != -1:
-                    b = ip_route[i].find("default via ") + len("default via ")
+                    b = ip_route[i].find("default via ") + len("default via ") #some slicing
                     e = ip_route[i].find(" dev") 
                     gateway.append(ip_route[i][b:e])
                     b = e + len(" dev")
@@ -265,25 +265,25 @@ while keep_alive == True:
                     gateway_interface.append(ip_route[i][b:e])
                 else:
                     break
-            if len(gateway) == 0:
+            if len(gateway) == 0: #if something goes wrong
                 gateway.append("Uknown")
             if len(gateway_interface) == 0:
                 gateway_interface.append("Uknown")
             wireless_list = []
             ethernet_list = []
             localhost = []
-            for i in range(len(net_list)):
-                if net_list[i][:2] == 'wl':
+            for i in range(len(net_list)): 
+                if net_list[i][:2] == 'wl': #wl -> finding out wireless interfaces
                     s = i +1
                     wireless_list.append(net_list[i])
-                    net_list[s] = net_list[s].replace('\n', ' ')
+                    net_list[s] = net_list[s].replace('\n', ' ') #too many spaces, hard to read
                     net_list[s] = net_list[s].replace('        ', ' ')
                     net_list[s] = net_list[s].replace('     ', ' ')
                     if net_list[s].find(' ', -2) == len(net_list[s])-2:
-                        wireless_list.append(net_list[s][:-2])
+                        wireless_list.append(net_list[s][:-2]) #string cleaning
                     else:
-                        wireless_list.append(net_list[s][:-1])
-                if net_list[i][:2] == 'en':
+                        wireless_list.append(net_list[s][:-1]) #string cleaning
+                if net_list[i][:2] == 'en': #ethernet interfaces, same as wl
                     s = i + 1
                     ethernet_list.append(net_list[i])
                     net_list[s] = net_list[s].replace('\n', ' ')
@@ -293,7 +293,7 @@ while keep_alive == True:
                         ethernet_list.append(net_list[s][:-2])
                     else:
                         ethernet_list.append(net_list[s][:-1])
-                if net_list[i][:2] == 'lo':
+                if net_list[i][:2] == 'lo': # finding out loopback
                     s = i + 1
                     localhost.append(net_list[i])
                     net_list[s] = net_list[s].replace('\n', ' ')
@@ -304,8 +304,8 @@ while keep_alive == True:
             
             def net_specs(list1):
                 result = []
-                string = str(list1)
-                if string.find("LOWER_UP") != -1:
+                string = str(list1) #we need to analize the list to catch all the informations
+                if string.find("LOWER_UP") != -1: 
                     result.append("[green1]Connected to the network[/green1] :link:")
                 else:
                     result.append("[red]Disconnected from the network[/red] :x:")
@@ -388,28 +388,28 @@ while keep_alive == True:
                     b = string.rfind("preferred_lft") + len("preferred_lft") + 1
                     e = string.find("'", b)
                     result.append("[bold yellow]Preferred lft:[/bold yellow] " + string[b:e])
-                return result
+                return result #completed, next time: dictionaries...
             
-            localhost = net_specs(network[1])
+            localhost = net_specs(network[1]) #let's find out 
             wireless_list = net_specs(network[0])
             ethernet_list = net_specs(network[2])
             tables = []
             console.print(Panel(Text('Network interfaces', justify='center', style='bold green1'), box=box.HEAVY, border_style='pale_turquoise1'))
             if len(network[2])>=1 and len(ethernet_list)>=1:
                 ethernet_table = Table(border_style="pale_turquoise1", width=40,  expand = True, box=box.HEAVY_HEAD)
-                for i in range(0, len(network[2]), 2):
+                for i in range(0, len(network[2]), 2): #printing loopback panel
                     ethernet_table.add_column(Text(network[2][i], justify="center", style="bold yellow1"))
                 for i in range(len(ethernet_list)):
                     ethernet_table.add_row(ethernet_list[i])
                 tables.append(ethernet_table)
-            if len(network[0])>=1 and len(wireless_list)>=1:
+            if len(network[0])>=1 and len(wireless_list)>=1: #printing loopback panel
                 wireless_table = Table(border_style="pale_turquoise1",width=40, expand = True, box=box.HEAVY_HEAD) 
                 for i in range(0, len(network[0]), 2):
                     wireless_table.add_column(Text(network[0][i], justify="center", style="bold yellow1"))
                 for i in range(len(wireless_list)):
                     wireless_table.add_row(wireless_list[i])
                 tables.append(wireless_table)
-            if len(network[1])>=1 and len(localhost)>=1:
+            if len(network[1])>=1 and len(localhost)>=1: #printing loopback panel
                 localhost_table = Table(border_style="pale_turquoise1", width=40, expand = True, box=box.HEAVY_HEAD)
                 for i in range(0, len(network[1]), 2):
                     localhost_table.add_column(Text(network[1][i], justify="center", style="bold yellow1"))
@@ -424,7 +424,7 @@ while keep_alive == True:
                 console.print(Align.center("[bold yellow1]Gateway "+ str(i+1) + ": [/bold yellow1]" + gateway[i] + " [bold yellow1]via[/bold yellow1] " + gateway_interface[i]))
 
         def net_process_ports(): #using lsof to detect an open network stream
-            console.print(Panel(Align.center("Running as root will display more informations, do you want run as root?\n\n\t\t\t\t   [bold]YES[/bold]/no"), padding=(1,1), expand = False, border_style="cyan"))
+            console.print(Panel(Align.center("Running as root will display more informations, do you want run as root?\n\n\t\t\t\t   [bold]YES[/bold]/no"), padding=(1,1), expand = False, border_style="cyan")) #suo or non sudo, that's the dilemma -Shakespeare
             choice = console.input("                                      [bold yellow1]>>[/bold yellow1] ")
             pr_list = list(str())
             if choice.lower() == 'yes' or choice.lower() == '':
@@ -464,7 +464,7 @@ while keep_alive == True:
             for i in range(len(pr_name)):
                 pr_table = Table(title=Text(pr_name[i], style="bold yellow1"), border_style="pale_turquoise1", expand = True, box=box.HEAVY_HEAD)
                 pr_table.add_column("[bold yellow]PID[/bold yellow]", justify="center")
-                # pr_table.add_column("[bold yellow]USER[/bold yellow]", justify="center")
+                # pr_table.add_column("[bold yellow]USER[/bold yellow]", justify="center") not enough space, recoverable with PID
                 pr_table.add_column("[bold yellow]NODE[/bold yellow]", justify="center")
                 pr_table.add_column("[bold yellow]IP IN:PORT -> IP OUT:PORT[/bold yellow]", justify="left", overflow= "fold")
                 pr_table.add_column("[bold yellow]STATUS[/bold yellow]", justify="center")
@@ -493,7 +493,7 @@ while keep_alive == True:
         def arping(ip, count='1', timeout='1'):
             return subprocess.run(['sudo', 'arping', '-c', count, '-w', timeout, ip], capture_output=True).stdout.decode()
         
-        def arping_installed(): #check with apt if arping is installed
+        def arping_installed(): #check with apt if arping is installed, working only on Ubuntu
             control = cmd_to_string(['which', 'arping'])[0]
             while control != '/':
                 console.print(Align.center("it seems you don't have arping installed, do you want to install it?\n[bold]YES/no[/bold]\n\nNote: will be used the apt package manager, please if you have another package manager type no and install it manually."))
@@ -518,7 +518,7 @@ while keep_alive == True:
                     console.print(Text("\nPlease insert a valid choice\n"), style="bold red", justify="center")
                     arping_installed()
 
-        def local_scan(): #using ping/arping to scan the local network, ttl to detect the OS of the receiver
+        def local_scan(): #using ping/arping to scan the local network, ttl to detect the OS of the receiver, arping to find out leftover machines
             global local_ip
             global default_net_int
             global proceed
@@ -578,7 +578,7 @@ while keep_alive == True:
                     else:
                         ip_addr = replied[i][replied[i].index("from ") + 5: replied[i].index(": icmp_seq")]
                         ip_replied.append(ip_addr)
-                        ttl = replied[i][replied[i].index("ttl=") + 4: replied[i].index(" time")]
+                        ttl = replied[i][replied[i].index("ttl=") + 4: replied[i].index(" time")] #<- ttl
                         if ttl == "64":
                             device_type = "Linux"
                         elif ttl == "128":
@@ -595,7 +595,7 @@ while keep_alive == True:
                     arping_installed()
                     def arp_scan(ip):
                         results.append(arping(ip))
-                    with concurrent.futures.ThreadPoolExecutor(max_workers=255) as executor:
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=255) as executor: #gotta go fast meme
                         executor.map(arp_scan, net)
                     arp_replied = list(str())
                     for i in range(len(results)):
@@ -655,7 +655,8 @@ while keep_alive == True:
                 exit()
             address_list.append(choice.lower())
             i = 9
-            def popolate_address_list(address_list, i, choice):
+            
+            def popolate_address_list(address_list, i, choice): #taking 10 addreses
                 while choice != "":
                     console.print(Text("\nIf you want, you can add another address, type 'stop' or nothing to confirm:\n"), justify='center')
                     choice = console.input("                                  [bold yellow1]>>[/bold yellow1] ")
@@ -678,18 +679,19 @@ while keep_alive == True:
                         i -= 1    
                         console.print(Align.center("\n" + str(i) + " remaining"))
                         address_list.append(choice.lower())
-                return(list(address_list))
+                return(list(address_list)) #casting, just in case
+            
             address_list = popolate_address_list(address_list, i, choice)
             if len(address_list) == 0:
-                console.print(Align.center("No address to ping, please type somenthing!"))
+                console.print(Align.center("No address to ping, please type somenthing!")) #or tipe "bye..."
                 average_ping()
             else:
                 ping_results = list(str())
                 ping_completed = list(str())
-                console.print(Align.center("\n...This may take a while...\n"))
+                console.print(Align.center("\n...This may take a while...\n")) #max 15 sec
                 def multiple_pings(ip):
                     ping_results.append(ping(ip, '15', '15'))
-                with concurrent.futures.ThreadPoolExecutor(max_workers=225) as executor:
+                with concurrent.futures.ThreadPoolExecutor(max_workers=225) as executor: #multithread pt3 - the return of the king
                    executor.map(multiple_pings, address_list)
                 address_list.clear()
                 for i in range(len(ping_results)):
@@ -704,7 +706,7 @@ while keep_alive == True:
                 loss = list(str())
                 time = list(str())
                 jitter = list(str())
-                for i in range(len(ping_completed)):
+                for i in range(len(ping_completed)): #slicing and taking the results
                     b = ping_completed[i].find("---\n") + len("---\n")
                     e = ping_completed[i].find(" packets transmitted")
                     sent.append(ping_completed[i][b:e])
@@ -744,10 +746,10 @@ while keep_alive == True:
                 secondary_response.append(ping(ip2))
             with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
                    executor.map(pings, primary_add, secondary_add)
-            primary_result = list(str())
-            secondary_result = list(str())
-            primary_no_response = list(str())
-            secondary_no_response = list(str())
+            primary_result = list(str()) #to sort
+            secondary_result = list(str()) #to sort
+            primary_no_response = list(str()) #sorting don like "null"
+            secondary_no_response = list(str()) #sorting don like "null"
             for i in range(len(primary_response)):
                 for j in range(len(primary_add)):
                     if primary_response[i].find(primary_add[j]) != -1:
@@ -755,7 +757,7 @@ while keep_alive == True:
                             b = primary_response[i].find(" = ")
                             b1 = primary_response[i].find("/", b)
                             e = primary_response[i].find("/", b1+1)
-                            primary_stats = {
+                            primary_stats = { #dictionary are waay cooler
                                 "name": dns_name[j],
                                 "primary address": primary_add[j],
                                 "time" : primary_response[i][b1+1:e],
@@ -825,7 +827,7 @@ while keep_alive == True:
             fastest_primary = primary_result[0]
             status_systemd = cmd_to_list(['systemd-resolve', '--status'], '\n\n')
             status_DNS = {
-                "interface" : "Not found",
+                "interface" : "Not found", #just in case
                 "address" : "Not found",
                 "domain" : "Not found"
             }
@@ -840,6 +842,7 @@ while keep_alive == True:
                     b = status_systemd[i].find("DNS Domain: ", e) + len("DNS Domain: ")
                     status_DNS.update({"domain" : status_systemd[i][b:]})
             console.print(Align.center(Panel("Do you want to set " + "[bold white]" + (fastest_primary["name"] + "[/bold white]" + " as primary DNS [bold white]" + status_DNS["interface"] + "[/bold white]? [bold]YES[/bold]/no"), border_style="cyan")))
+            
             while True:
                 yn_choice = console.input("                                      [bold yellow1]>>[/bold yellow1] ")
                 if yn_choice.lower() == "yes" or yn_choice.lower() == "":
@@ -856,13 +859,10 @@ while keep_alive == True:
                     break
                 else:
                     console.print(Text("\nPlease choose 'yes' or 'no'\n", justify="center", style="bold red"))
-            
-            #  -> stampare a linea di comando
-            # sudo systemd-resolve -i INTERFACE --set-dns=ADDRESS --set-domain NAME
 
         ## INTERFACE ##
 
-        def yn_selector():
+        def yn_selector(): #input control for ip
             global local_ip
             yn_choice = console.input("                                      [bold yellow1]>>[/bold yellow1] ")
             if yn_choice.lower() == "yes" or yn_choice == "":
@@ -946,7 +946,7 @@ while keep_alive == True:
                         break
             return str(choice)
 
-        def selector():
+        def selector(): #bad VM integrations, some  strings don't get populated the right way
             choice = console.input("                                      [bold #ffa726]>>[/bold #ffa726] ")
             choice = input_control(choice)
             if int(choice) == 1:
@@ -988,13 +988,11 @@ while keep_alive == True:
         main_menu()
         selector()
 
-        # DNS UTILIZZATO -> systemd-resolve
-
     if sys.platform.startswith('win'):
-        console.print("I'm still developing this part sorry. \n")
+        console.print("I'm still developing this part sorry. \n") 
         
         with Progress() as progress:
-            task1 = progress.add_task("[red]Playing league of legends...", total=1000)
+            task1 = progress.add_task("[red]Playing league of legends...", total=1000) #i'm joking...
             task2 = progress.add_task("[green]Cooking a panda...", total=1000)
             task3 = progress.add_task("[orchid]Eating pasta...", total=1000)
             task4 = progress.add_tassk("[cyan1]Sleeping(like, a lot)...", total=1000)
