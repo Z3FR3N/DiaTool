@@ -26,7 +26,6 @@ import time
 import sys
 import subprocess
 import concurrent.futures
-from unittest import skip
 from rich.columns import Columns
 from rich.align import Align
 from rich.tree import Tree
@@ -457,7 +456,17 @@ while keep_alive == True:
             console.print(Panel(Columns(pr_tables), title="[bold green1]Pocesses and Ports[/bold green1]", padding= (1,0), box=box.HEAVY))
         
         def public_ip(): #using ipinfo and curl
-            console.print(Align.center("\n[bold white]Here's your public IP:[/bold white] " + cmd_to_string(['curl', 'https://ipinfo.io/ip']) + "\n"))
+            pub_ip_info = list(str())
+            cmd_to_pass = ["ip", "hostname", "city", "region", "country", "loc", "org", "postal", "timezone"]
+            console.print(Text("\n...This may take a while...\n", justify="center"))
+            for i in range(len(cmd_to_pass)):
+                pub_ip_info.append(cmd_to_string(['curl', str('https://ipinfo.io/' + cmd_to_pass[i])]).strip("\n"))
+            while len(pub_ip_info) <= 8: #avoiding IndexError
+                if len(pub_ip_info) == 9:
+                    break
+                else:
+                    pub_ip_info.append("Not found")
+            console.print(Align.center(Panel("[bold yellow1]Public IP:[/bold yellow1] " + pub_ip_info[0] + "\n" + "[bold yellow1]Hostname:[/bold yellow1] " + pub_ip_info[1] + "\n" + "[bold yellow1]City:[/bold yellow1] " + pub_ip_info[2] + "\n" + "[bold yellow1]Region:[/bold yellow1] " + pub_ip_info[3] + "\n" + "[bold yellow1]Country:[/bold yellow1] " + pub_ip_info[4] + "\n" + "[bold yellow1]Location:[/bold yellow1] " + pub_ip_info[5] + "\n" + "[bold yellow1]Org:[/bold yellow1] " + pub_ip_info[6] + "\n" + "[bold yellow1]Postal:[/bold yellow1] " + pub_ip_info[7] + "\n" + "[bold yellow1]Timezone:[/bold yellow1] " + pub_ip_info[8], title="[bold green1]Public IP details[/bold green1]", border_style="cyan", padding= 1)))
 
         def ping(ip, timeout='1', count='1'):
                 return subprocess.run(['ping','-c', count, '-w', timeout, '-4', ip], capture_output=True).stdout.decode()
@@ -630,7 +639,7 @@ while keep_alive == True:
             def popolate_address_list(address_list, i, choice):
                 while choice != "":
                     console.print(Text("\nIf you want, you can add another address, type 'stop' or nothing to confirm:\n"), justify='center')
-                    choice = console.input("                                  [bold #ffa726]>>[/bold #ffa726] ")
+                    choice = console.input("                                  [bold yellow1]>>[/bold yellow1] ")
                     if choice == "stop" or len(address_list) >= 10 or choice == "":
                         break
                     elif choice.lower() == "net":
@@ -775,7 +784,7 @@ while keep_alive == True:
                 primary_dns_table.add_row(str(c), x.get("name"), x.get("primary address"), x.get("time") + " ms")
             if len(primary_no_response) >= 1:
                 for j in range(len(primary_no_response)):
-                    c1 = c + j + 1
+                    c1 = c + len(primary_no_response)
                     x = dict(primary_no_response[j])
                     primary_dns_table.add_row(str(c1), x.get("name"), x.get("primary address"), x.get("time"))
             secondary_dns_table = Table(title= "Secondary DNS", show_lines=True, border_style="cyan", title_style="bold green1")
@@ -788,7 +797,7 @@ while keep_alive == True:
                 secondary_dns_table.add_row(str(i+1), x.get("name"), x.get("primary address"), x.get("time") + " ms")
             if len(secondary_no_response) >= 1:
                 for j in range(len(secondary_no_response)):
-                    c1 = c + j + 1
+                    c1 = c + len(secondary_no_response)
                     x = dict(secondary_no_response[j])
                     secondary_dns_table.add_row(str(c1), x.get("name"), x.get("primary address"), x.get("time"))
             console.print(Align.center(primary_dns_table))
@@ -863,7 +872,7 @@ while keep_alive == True:
             console.print(Align.center(interface))
      
         def net_menu():
-            interface = Tree("[bold yellow1]:penguin: " + hostname + " @ " + username + "[/bold yellow1]", guide_style="yellow")
+            interface = Tree("[bold yellow1]:penguin: " + hostname + " @ " + username + "[/bold yellow1]", guide_style="yellow1")
             interface.add((Panel("[bold white][1] :right_arrow:  Print my [underline]network interfaces[/underline]\n\n[2] :right_arrow:  Print [underline]process and their ports[/underline]\n\n[3] :right_arrow:  Print my [underline]public IP[/underline]\n\n[4] :right_arrow:  Scan my [underline]local network[/underline][/bold white]\n\n[bold white][5] :right_arrow:  [underline]Ping[/underline] one or more addresses[/bold white]\n\n[bold white][6] :right_arrow:  Find the [underline]fastest dns[/underline] for you[/bold white]\n\n\t[bold green1]'main' :right_arrow:  main panel\n\t'net' :right_arrow:  this panel\n\t'bye' :right_arrow:  leave[/bold green1]", title = "[bold green1]Network magic[/bold green1]", padding = 1, style = "pale_turquoise1", expand = False)))
             console.print(Align.center(interface))
             net_selector()
