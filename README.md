@@ -17,7 +17,7 @@ python3 DiaTool.py
 
 # Installation
 
-To enable **all** the features, make sure to install the arping package from Ubuntu repositories (it's a fairly small package to make ARP requests). Also the curl it's quite important if not installed. You can use the package manager and the terminal of your choice, I daily drive Pop_OS (Ubuntu based) so for me it's:
+To enable **all** the features, make sure to install the arping and curl packages from Ubuntu repositories (it's a fairly small package to make ARP requests). Feel free to use the package manager and the terminal of your choice, I daily drive Pop_OS (Ubuntu based) so for me it's:
 
 ```bash
 sudo apt-get install arping curl
@@ -28,11 +28,13 @@ If not installed, Python3:
 sudo apt-get install python3
 ```
 
+# The Code 
+
 Written in Python (v3.9), makes use of the following **modules**:
 
 - subprocess (pass commands to the CLI)
 - concurrent.futures (parallellization for I/O bound operation)
-- sys
+- sys (platform detection)
 - rich (framework to display all the info in a nice way)
 
 Almost all are standard python modules, the only one needed is rich:
@@ -41,7 +43,7 @@ Almost all are standard python modules, the only one needed is rich:
 sudo pip install rich
 ```
 
-Feel free to go on the [python download page](https://www.python.org/downloads/) and [rich documentation](https://rich.readthedocs.io/en/stable/introduction.html#installation) for more information.
+More information can be found on the [python download page](https://www.python.org/downloads/) and [rich documentation](https://rich.readthedocs.io/en/stable/introduction.html#installation).
 
 # Features
 
@@ -51,5 +53,5 @@ This script is capable of displying:
 - Print network interfaces, process which are using the network, public IP
 - Make an ICMP/ARP scan of the subnet.
 - Ping one or more (up to 10) IP addresses.
-- Changing DNS of the current session (using **systemd-resolve**) with a faster one.
+- Changing DNS of the current session (using **systemd-resolve**) with a faster one, i hope....
 
