@@ -252,6 +252,18 @@ while keep_alive == True:
             ip_a = cmd_to_string(['ip', 'a'])
             net_list = []
             net_list = ip_a.split(': ')
+            gateway = cmd_to_string(['ip', 'route', 'show']).split("dev")[0]
+            gateway_interface = cmd_to_string(['ip', 'route', 'show']).split("dev")[1]
+            gateway_interface = gateway_interface.split("proto")[0].strip()
+            if len(gateway) >= 1:
+                gateway = gateway.split("via ")[1]
+                gateway = gateway.strip()
+            else:
+                gateway = "Unknown"
+            if len(gateway_interface) >= 1:
+                gateway_interface = gateway_interface.strip()
+            else:
+                gateway_interface = "Unknown"
             wireless_list = []
             ethernet_list = []
             localhost = []
@@ -403,6 +415,7 @@ while keep_alive == True:
             else:
                 tables.append(localhost_table)
             console.print(Columns(tables, padding=(0, 0)))
+            console.print(Align.center("[bold yellow1]Gateway:[/bold yellow1] " + gateway + " [bold yellow1]via[/bold yellow1] " + gateway_interface))
 
         def net_process_ports(): #using lsof to detect an open network stream
             console.print(Panel(Align.center("Running as root will display more informations, do you want run as root?\n\n\t\t\t\t   [bold]YES[/bold]/no"), padding=(1,1), expand = False, border_style="cyan"))
