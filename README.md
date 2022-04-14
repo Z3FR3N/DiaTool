@@ -7,7 +7,7 @@
 The aim of this script is to display in a compact way all the information regarding the machine. It's meant to be a tool to "diagnose" (hence the name) the hardware and the network. If you have git installed in your system, you can obtain this script by simply running:
 
 ```bash
-git clone  https://github.com/Z3FR3N/DiaTool 
+git clone https://github.com/Z3FR3N/DiaTool 
 ```
 To run the script simply type from the terminal (from the folder):
 
