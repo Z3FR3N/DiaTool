@@ -1,5 +1,5 @@
-<div style="text-align: center;">
-<img src="icon.png" alt="alt text" title="image Title" width="300"/>
+<div class="center">
+<img src="icon.png" width="300"/>
 </div>
 
 # DiaTool
