@@ -1,6 +1,6 @@
-{:style="text-align:center;"}
-<img src="icon.png" width="300"/>
-
+<p align="center">
+  <img width="300" height="300" src="icon.png">
+</p>
 
 # DiaTool
 
