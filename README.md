@@ -35,9 +35,9 @@ Written in Python (v3.9), makes use of the following **modules**:
 - subprocess (pass commands to the CLI)
 - concurrent.futures (parallellization for I/O bound operation)
 - sys (platform detection)
-- rich (framework to display all the info in a nice way)
+- rich (framework to display all the info in a **nice** way)
 
-Almost all are standard python modules, the only one needed is rich:
+Almost all are standard python modules (in Python 3.9 at least), the only one needed is rich:
 
 ```bash
 sudo pip install rich
