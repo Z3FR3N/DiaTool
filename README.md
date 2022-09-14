@@ -47,7 +47,7 @@ More information can be found on the [python download page](https://www.python.o
 
 # Features
 
-This script is capable of displying:
+This script is capable of displaying:
 
 - CPU(s), RAM, disks usage and volume mounting point.
 - Print network interfaces, process which are using the network, public IP
